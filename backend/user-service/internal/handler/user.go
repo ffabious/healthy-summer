@@ -1,19 +1,79 @@
 package handler
 
 import (
+	"encoding/json"
 	"net/http"
+	"time"
+
+	"github.com/ffabious/healthy-summer/user-service/internal/model"
 )
 
-func UserHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement user-specific logic here
-	println("User handler called with method:", r.Method)
+// @Summary User Login
+// @Description Authenticate user
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param loginRequest body model.LoginRequest true "Login Request"
+// @Success 200 {object} model.LoginResponse
+// @Router /api/users/login [post]
+func LoginHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req model.LoginRequest
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&req); err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("User handler"))
+	response := model.LoginResponse{
+		Token: "dummy-token",
+		User: model.User{
+			ID:        "12345",
+			Email:     "string",
+			FirstName: "John",
+			LastName:  "Doe",
+		},
+		ExpiresAt: time.Now().Add(24 * time.Hour),
+	}
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
 }
 
-func UsersHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement logic for handling multiple users
-	println("Users handler called with method:", r.Method)
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Users handler"))
+func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req model.RegisterRequest
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&req); err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	w.WriteHeader(http.StatusCreated)
+	response := model.RegisterResponse{
+		Token: "dummy-token",
+		User: model.User{
+			ID:        "12345",
+			Email:     req.Email,
+			FirstName: req.FirstName,
+			LastName:  req.LastName,
+		},
+		ExpiresAt: time.Now().Add(24 * time.Hour),
+	}
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
 }
