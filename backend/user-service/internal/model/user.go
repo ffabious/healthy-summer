@@ -12,7 +12,7 @@ type User struct {
 }
 
 type LoginRequest struct {
-	Email    string `json:"email" binding:"required,email"`
+	Email    string `json:"email" binding:"required,email" example:"string@mail.com"`
 	Password string `json:"password" binding:"required"`
 }
 
@@ -23,7 +23,7 @@ type LoginResponse struct {
 }
 
 type RegisterRequest struct {
-	Email     string `json:"email" binding:"required,email"`
+	Email     string `json:"email" binding:"required,email" example:"string@mail.com"`
 	Password  string `json:"password" binding:"required"`
 	FirstName string `json:"first_name" binding:"required"`
 	LastName  string `json:"last_name" binding:"required"`

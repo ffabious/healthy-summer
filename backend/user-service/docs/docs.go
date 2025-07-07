@@ -93,7 +93,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "string@mail.com"
                 },
                 "password": {
                     "type": "string"
@@ -124,7 +125,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "string@mail.com"
                 },
                 "first_name": {
                     "type": "string"

@@ -2,6 +2,7 @@ definitions:
   model.LoginRequest:
     properties:
       email:
+        example: string@mail.com
         type: string
       password:
         type: string
@@ -21,6 +22,7 @@ definitions:
   model.RegisterRequest:
     properties:
       email:
+        example: string@mail.com
         type: string
       first_name:
         type: string

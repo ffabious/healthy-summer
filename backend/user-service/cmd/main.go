@@ -2,12 +2,13 @@ package main
 
 import (
 	"log"
-	"net/http"
 	"os"
 
 	_ "github.com/ffabious/healthy-summer/user-service/docs"
 	"github.com/ffabious/healthy-summer/user-service/internal/handler"
-	httpSwagger "github.com/swaggo/http-swagger"
+	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func main() {
@@ -16,12 +17,16 @@ func main() {
 		port = "8080"
 	}
 
-	http.HandleFunc("/api/users/login", handler.LoginHandler)
-	http.HandleFunc("/api/users/register", handler.RegisterHandler)
-	http.HandleFunc("/api/docs/", httpSwagger.WrapHandler)
+	r := gin.Default()
 
-	log.Printf("Starting server on :%s", port)
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
+	r.GET("/api/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	r.POST("/api/users/login", handler.LoginHandler)
+	r.POST("/api/users/register", handler.RegisterHandler)
+
+	log.Printf("Starting user service on :%s", port)
+	if err := r.Run(":" + port); err != nil {
+		log.Fatalf("Failed to start user service: %v", err)
 	}
+	log.Println("User service started successfully")
+	log.Println("Swagger documentation available at /api/docs/index.html")
 }
