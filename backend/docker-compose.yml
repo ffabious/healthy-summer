@@ -1,0 +1,32 @@
+services:
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+
+  activity-service:
+    build: ./activity-service
+    container_name: activity-service
+    ports:
+      - "8081:8081"
+    environment:
+      - PORT=8081
+
+  nutrition-service:
+    build: ./nutrition-service
+    container_name: nutrition-service
+    ports:
+      - "8082:8082"
+    environment:
+      - PORT=8082
+
+  social-service:
+    build: ./social-service
+    container_name: social-service
+    ports:
+      - "8083:8083"
+    environment:
+      - PORT=8083
