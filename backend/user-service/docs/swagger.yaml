@@ -18,6 +18,31 @@ definitions:
       user:
         $ref: '#/definitions/model.User'
     type: object
+  model.RegisterRequest:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - first_name
+    - last_name
+    - password
+    type: object
+  model.RegisterResponse:
+    properties:
+      expires_at:
+        type: string
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/model.User'
+    type: object
   model.User:
     properties:
       email:
@@ -52,6 +77,28 @@ paths:
           schema:
             $ref: '#/definitions/model.LoginResponse'
       summary: User Login
+      tags:
+      - auth
+  /api/users/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user
+      parameters:
+      - description: Register Request
+        in: body
+        name: registerRequest
+        required: true
+        schema:
+          $ref: '#/definitions/model.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.RegisterResponse'
+      summary: User Registration
       tags:
       - auth
 swagger: "2.0"
