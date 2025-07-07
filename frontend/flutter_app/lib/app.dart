@@ -55,11 +55,6 @@ class AppScreen extends StatelessWidget {
               },
               child: const Text('Register'),
             ),
-            const SizedBox(height: 20),
-            const Text(
-              'This is a placeholder for the main app screen.',
-              style: TextStyle(fontSize: 16),
-            ),
           ],
         ),
       ),
