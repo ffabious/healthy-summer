@@ -1,0 +1,57 @@
+definitions:
+  model.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  model.LoginResponse:
+    properties:
+      expires_at:
+        type: string
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/model.User'
+    type: object
+  model.User:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: string
+      last_name:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api/users/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user
+      parameters:
+      - description: Login Request
+        in: body
+        name: loginRequest
+        required: true
+        schema:
+          $ref: '#/definitions/model.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.LoginResponse'
+      summary: User Login
+      tags:
+      - auth
+swagger: "2.0"
