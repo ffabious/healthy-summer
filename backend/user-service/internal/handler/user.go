@@ -47,6 +47,14 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary User Registration
+// @Description Register a new user
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param registerRequest body model.RegisterRequest true "Register Request"
+// @Success 201 {object} model.RegisterResponse
+// @Router /api/users/register [post]
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)

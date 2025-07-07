@@ -7,9 +7,7 @@ import (
 
 	_ "github.com/ffabious/healthy-summer/user-service/docs"
 	"github.com/ffabious/healthy-summer/user-service/internal/handler"
-	"github.com/gin-gonic/gin"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func main() {
@@ -17,14 +15,10 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
-	// Swagger documentation
-	r := gin.Default()
-
-	r.GET("/api/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
-	r.Run(":" + port)
 
 	http.HandleFunc("/api/users/login", handler.LoginHandler)
+	http.HandleFunc("/api/users/register", handler.RegisterHandler)
+	http.HandleFunc("/api/docs/", httpSwagger.WrapHandler)
 
 	log.Printf("Starting server on :%s", port)
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
