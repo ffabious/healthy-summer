@@ -50,7 +50,14 @@ func Connect() {
 	if err != nil {
 		log.Fatalf("Failed to create extension uuid-ossp: %v", err)
 	}
-	_, err = sqlDB.Exec(`CREATE TYPE IF NOT EXISTS intensity_enum AS ENUM ('low', 'medium', 'high');`)
+	_, err = sqlDB.Exec(`
+		DO $$
+		BEGIN
+			IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'intensity_enum') THEN
+				CREATE TYPE intensity_enum AS ENUM ('low', 'medium', 'high');
+			END IF;
+		END$$;
+	`)
 	if err != nil {
 		log.Fatalf("Failed to create enum type intensity_enum: %v", err)
 	}
