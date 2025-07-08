@@ -1,0 +1,101 @@
+definitions:
+  model.Activity:
+    properties:
+      calories:
+        type: integer
+      duration_min:
+        type: integer
+      id:
+        type: string
+      intensity:
+        $ref: '#/definitions/model.Intensity'
+      location:
+        type: string
+      timestamp:
+        type: string
+      type:
+        type: string
+      user_id:
+        type: string
+    type: object
+  model.Intensity:
+    enum:
+    - low
+    - medium
+    - high
+    type: string
+    x-enum-varnames:
+    - IntensityLow
+    - IntensityMedium
+    - IntensityHigh
+  model.PostActivityRequest:
+    properties:
+      calories:
+        type: integer
+      duration_min:
+        type: integer
+      intensity:
+        $ref: '#/definitions/model.Intensity'
+      location:
+        type: string
+      timestamp:
+        type: string
+      type:
+        type: string
+      user_id:
+        type: string
+    required:
+    - calories
+    - duration_min
+    - intensity
+    - timestamp
+    - type
+    - user_id
+    type: object
+info:
+  contact: {}
+paths:
+  /api/activities:
+    post:
+      consumes:
+      - application/json
+      description: Create a new activity entry
+      parameters:
+      - description: Activity data
+        in: body
+        name: activity
+        required: true
+        schema:
+          $ref: '#/definitions/model.PostActivityRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.Activity'
+      summary: Post Activity
+      tags:
+      - activities
+  /api/activities/{user_id}:
+    get:
+      description: Get all activities for a user
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Activity'
+            type: array
+      summary: Get Activities
+      tags:
+      - activities
+swagger: "2.0"

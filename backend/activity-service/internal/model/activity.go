@@ -72,11 +72,11 @@ type PostActivityResponse struct {
 	Timestamp   time.Time `json:"timestamp"`
 }
 
-type GetActivitiesByUserIdRequest struct {
+type GetActivitiesByUserIDRequest struct {
 	UserID uuid.UUID `json:"user_id" binding:"required"`
 }
 
-type GetActivitiesByUserIdResponse struct {
+type GetActivitiesByUserIDResponse struct {
 	Activities []Activity `json:"activities"`
 }
 
