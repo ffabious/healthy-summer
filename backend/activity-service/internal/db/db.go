@@ -69,3 +69,18 @@ func Connect() {
 	log.Println("Database connection and migration completed successfully")
 	log.Println("Database connection string:", dsn)
 }
+
+func CreateActivity(activity *model.Activity) error {
+	if err := DB.Create(activity).Error; err != nil {
+		return fmt.Errorf("failed to create activity: %w", err)
+	}
+	return nil
+}
+
+func GetActivitiesByUserID(userID string) (*[]model.Activity, error) {
+	var activities []model.Activity
+	if err := DB.Where("user_id = ?", userID).Find(&activities).Error; err != nil {
+		return nil, fmt.Errorf("failed to get activities for user %s: %w", userID, err)
+	}
+	return &activities, nil
+}

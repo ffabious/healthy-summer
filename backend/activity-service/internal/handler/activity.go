@@ -1,14 +1,75 @@
 package handler
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
+	"time"
+
+	"github.com/ffabious/healthy-summer/activity-service/internal/db"
+	"github.com/ffabious/healthy-summer/activity-service/internal/model"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
-func PostActivitiesHandler(c *gin.Context) {
-	// This is a placeholder for the actual implementation
-	// In a real application, you would handle the POST request to create a new activity
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Activity created successfully",
-	})
+// @Summary Post Activity
+// @Description Create a new activity entry
+// @Tags activities
+// @Accept json
+// @Produce json
+// @Param activity body model.PostActivityRequest true "Activity data"
+// @Success 201 {object} model.Activity
+// @Router /api/activities [post]
+// PostActivityHandler handles the creation of a new activity entry
+func PostActivityHandler(c *gin.Context) {
+	var req model.PostActivityRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
+		return
+	}
+
+	if !req.Intensity.IsValid() {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid intensity value"})
+		return
+	}
+
+	activity := model.Activity{
+		ID:          uuid.New(),
+		UserID:      req.UserID,
+		Type:        req.Type,
+		DurationMin: req.DurationMin,
+		Intensity:   req.Intensity,
+		Calories:    req.Calories,
+		Location:    req.Location,
+		Timestamp:   time.Now(),
+	}
+
+	if err := db.CreateActivity(&activity); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create activity"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, activity)
+}
+
+// @Summary Get Activities
+// @Description Get all activities for a user
+// @Tags activities
+// @Produce json
+// @Param user_id path string true "User ID"
+// @Success 200 {array} model.Activity
+// @Router /api/activities/{user_id} [get]
+// GetActivitiesHandler retrieves all activities for a given user ID
+func GetActivitiesHandler(c *gin.Context) {
+	user_id := c.Param("user_id")
+	activity, err := db.GetActivitiesByUserID(user_id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Activity not found"})
+		return
+	}
+
+	if len(*activity) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "No activities found for this user"})
+		return
+	}
+
+	c.JSON(http.StatusOK, activity)
 }
