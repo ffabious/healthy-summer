@@ -84,3 +84,17 @@ func GetActivitiesByUserID(userID string) (*[]model.Activity, error) {
 	}
 	return &activities, nil
 }
+
+func GetActivityStatsByUserID(userID string) (*model.ActivityStats, error) {
+	var stats model.ActivityStats
+	if err := DB.Model(&model.Activity{}).
+		Select("SUM(duration_min) AS total_duration_min, SUM(calories) AS total_calories, COUNT(*) AS activities").
+		Where("user_id = ?", userID).
+		Scan(&stats).Error; err != nil {
+		return nil, fmt.Errorf("failed to get activity stats for user %s: %w", userID, err)
+	}
+	if stats.Activities == 0 {
+		return nil, nil // No activities found
+	}
+	return &stats, nil
+}
