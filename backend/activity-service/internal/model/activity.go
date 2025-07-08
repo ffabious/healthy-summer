@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// @name Intensity
 type Intensity string
 
 const (
@@ -22,6 +23,7 @@ func (i Intensity) IsValid() bool {
 	return false
 }
 
+// @name Activity
 type Activity struct {
 	ID          uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
 	UserID      uuid.UUID `json:"user_id" gorm:"type:uuid;not null"`
@@ -33,6 +35,7 @@ type Activity struct {
 	Timestamp   time.Time `json:"timestamp" gorm:"not null"`
 }
 
+// @name StepEntry
 type StepEntry struct {
 	ID     uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
 	UserID uuid.UUID `json:"user_id" gorm:"type:uuid;not null"`
@@ -40,17 +43,20 @@ type StepEntry struct {
 	Steps  int       `json:"steps" gorm:"not null"`
 }
 
+// @name ActivityStats
 type ActivityStats struct {
 	TotalDurationMin int `json:"total_duration_min"`
 	TotalCalories    int `json:"total_calories"`
 	Activities       int `json:"activities"`
 }
 
+// @name ActivityAnalytics
 type ActivityAnalytics struct {
 	ByType map[string]int `json:"by_type"` // "Running": 120 mins
 	ByDay  map[string]int `json:"by_day"`  // "Mon": 300 kcal
 }
 
+// @name PostActivityRequest
 type PostActivityRequest struct {
 	UserID      uuid.UUID `json:"user_id" binding:"required"`
 	Type        string    `json:"type" binding:"required"`
@@ -61,6 +67,7 @@ type PostActivityRequest struct {
 	Timestamp   time.Time `json:"timestamp" binding:"required"`
 }
 
+// @name PostActivityResponse
 type PostActivityResponse struct {
 	ID          uuid.UUID `json:"id"`
 	UserID      uuid.UUID `json:"user_id"`
@@ -72,33 +79,39 @@ type PostActivityResponse struct {
 	Timestamp   time.Time `json:"timestamp"`
 }
 
+// @name GetActivitiesByUserIDRequest
 type GetActivitiesByUserIDRequest struct {
 	UserID uuid.UUID `json:"user_id" binding:"required"`
 }
 
+// @name GetActivitiesByUserIDResponse
 type GetActivitiesByUserIDResponse struct {
 	Activities []Activity `json:"activities"`
 }
 
+// @name GetActivityStatsRequest
 type GetActivityStatsRequest struct {
 	UserID uuid.UUID `json:"user_id" binding:"required"`
 }
 
-
+// @name GetActivityStatsResponse
 type GetActivityAnalyticsRequest struct {
 	UserID uuid.UUID `json:"user_id" binding:"required"`
 }
 
+// @name GetActivityAnalyticsResponse
 type GetActivityAnalyticsResponse struct {
 	Analytics ActivityAnalytics `json:"analytics"`
 }
 
+// @name PostStepEntryRequest
 type PostStepEntryRequest struct {
 	UserID uuid.UUID `json:"user_id" binding:"required"`
 	Date   time.Time `json:"date" binding:"required"`
 	Steps  int       `json:"steps" binding:"required"`
 }
 
+// @name PostStepEntryResponse
 type PostStepEntryResponse struct {
 	ID     uuid.UUID `json:"id"`
 	UserID uuid.UUID `json:"user_id"`
@@ -106,10 +119,12 @@ type PostStepEntryResponse struct {
 	Steps  int       `json:"steps"`
 }
 
+// @name GetStepsByUserIdRequest
 type GetStepsByUserIdRequest struct {
 	UserID uuid.UUID `json:"user_id" binding:"required"`
 }
 
+// @name GetStepsByUserIdResponse
 type GetStepsByUserIdResponse struct {
 	Steps []StepEntry `json:"steps"`
 }

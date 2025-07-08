@@ -18,7 +18,6 @@ import (
 // @Param activity body model.PostActivityRequest true "Activity data"
 // @Success 201 {object} model.Activity
 // @Router /api/activities [post]
-// PostActivityHandler handles the creation of a new activity entry
 func PostActivityHandler(c *gin.Context) {
 	var req model.PostActivityRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -57,7 +56,6 @@ func PostActivityHandler(c *gin.Context) {
 // @Param user_id path string true "User ID"
 // @Success 200 {array} model.Activity
 // @Router /api/activities/{user_id} [get]
-// GetActivitiesHandler retrieves all activities for a given user ID
 func GetActivitiesHandler(c *gin.Context) {
 	user_id := c.Param("user_id")
 	activity, err := db.GetActivitiesByUserID(user_id)
@@ -81,7 +79,6 @@ func GetActivitiesHandler(c *gin.Context) {
 // @Param user_id path string true "User ID"
 // @Success 200 {object} model.ActivityStats
 // @Router /api/activities/stats/{user_id} [get]
-// GetActivityStatsHandler retrieves activity statistics for a given user ID
 func GetActivityStatsHandler(c *gin.Context) {
 	userID := c.Param("user_id")
 	stats, err := db.GetActivityStatsByUserID(userID)
