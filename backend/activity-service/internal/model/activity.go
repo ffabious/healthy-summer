@@ -84,9 +84,6 @@ type GetActivityStatsRequest struct {
 	UserID uuid.UUID `json:"user_id" binding:"required"`
 }
 
-type GetActivityStatsResponse struct {
-	Stats ActivityStats `json:"stats"`
-}
 
 type GetActivityAnalyticsRequest struct {
 	UserID uuid.UUID `json:"user_id" binding:"required"`
