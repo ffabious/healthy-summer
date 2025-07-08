@@ -50,3 +50,69 @@ type ActivityAnalytics struct {
 	ByType map[string]int `json:"by_type"` // "Running": 120 mins
 	ByDay  map[string]int `json:"by_day"`  // "Mon": 300 kcal
 }
+
+type PostActivityRequest struct {
+	UserID      uuid.UUID `json:"user_id" binding:"required"`
+	Type        string    `json:"type" binding:"required"`
+	DurationMin int       `json:"duration_min" binding:"required"`
+	Intensity   Intensity `json:"intensity" binding:"required"`
+	Calories    int       `json:"calories" binding:"required"`
+	Location    string    `json:"location"`
+	Timestamp   time.Time `json:"timestamp" binding:"required"`
+}
+
+type PostActivityResponse struct {
+	ID          uuid.UUID `json:"id"`
+	UserID      uuid.UUID `json:"user_id"`
+	Type        string    `json:"type"`
+	DurationMin int       `json:"duration_min"`
+	Intensity   Intensity `json:"intensity"`
+	Calories    int       `json:"calories"`
+	Location    string    `json:"location"`
+	Timestamp   time.Time `json:"timestamp"`
+}
+
+type GetActivitiesByUserIdRequest struct {
+	UserID uuid.UUID `json:"user_id" binding:"required"`
+}
+
+type GetActivitiesByUserIdResponse struct {
+	Activities []Activity `json:"activities"`
+}
+
+type GetActivityStatsRequest struct {
+	UserID uuid.UUID `json:"user_id" binding:"required"`
+}
+
+type GetActivityStatsResponse struct {
+	Stats ActivityStats `json:"stats"`
+}
+
+type GetActivityAnalyticsRequest struct {
+	UserID uuid.UUID `json:"user_id" binding:"required"`
+}
+
+type GetActivityAnalyticsResponse struct {
+	Analytics ActivityAnalytics `json:"analytics"`
+}
+
+type PostStepEntryRequest struct {
+	UserID uuid.UUID `json:"user_id" binding:"required"`
+	Date   time.Time `json:"date" binding:"required"`
+	Steps  int       `json:"steps" binding:"required"`
+}
+
+type PostStepEntryResponse struct {
+	ID     uuid.UUID `json:"id"`
+	UserID uuid.UUID `json:"user_id"`
+	Date   time.Time `json:"date"`
+	Steps  int       `json:"steps"`
+}
+
+type GetStepsByUserIdRequest struct {
+	UserID uuid.UUID `json:"user_id" binding:"required"`
+}
+
+type GetStepsByUserIdResponse struct {
+	Steps []StepEntry `json:"steps"`
+}
