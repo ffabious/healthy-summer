@@ -1,32 +1,48 @@
 services:
+  db:
+    image: postgres:15
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: summer
+      POSTGRES_PASSWORD: summer123
+      POSTGRES_DB: healthy_summer
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
   user-service:
     build: ./user-service
     container_name: user-service
+    env_file:
+      - ./user-service/.env
     ports:
       - "8080:8080"
-    environment:
-      - PORT=8080
+    depends_on:
+      - db
 
   activity-service:
     build: ./activity-service
     container_name: activity-service
-    ports:
-      - "8081:8081"
-    environment:
-      - PORT=8081
+    env_file:
+      - ./activity-service/.env
+    depends_on:
+      - db
 
   nutrition-service:
     build: ./nutrition-service
     container_name: nutrition-service
-    ports:
-      - "8082:8082"
-    environment:
-      - PORT=8082
+    env_file:
+      - ./nutrition-service/.env
+    depends_on:
+      - db
 
   social-service:
     build: ./social-service
     container_name: social-service
-    ports:
-      - "8083:8083"
-    environment:
-      - PORT=8083
+    env_file:
+      - ./social-service/.env
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
