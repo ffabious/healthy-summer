@@ -98,3 +98,10 @@ func GetActivityStatsByUserID(userID string) (*model.ActivityStats, error) {
 	}
 	return &stats, nil
 }
+
+func CreateStepEntry(stepEntry *model.StepEntry) error {
+	if err := DB.Create(stepEntry).Error; err != nil {
+		return fmt.Errorf("failed to create step entry: %w", err)
+	}
+	return nil
+}

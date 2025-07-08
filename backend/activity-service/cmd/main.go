@@ -38,7 +38,7 @@ func main() {
 	r.POST("/api/activities", handler.PostActivityHandler)
 	r.GET("/api/activities/:user_id", handler.GetActivitiesHandler)
 	r.GET("/api/activities/stats/:user_id", handler.GetActivityStatsHandler)
-	// r.POST("/api/activities/steps", handler.PostStepEntryHandler)
+	r.POST("/api/activities/steps", handler.PostStepEntryHandler)
 	// r.GET("/api/activities/analytics/:user_id", handler.GetActivityAnalyticsHandler)
 
 	log.Printf("Starting activity service on :%s", port)
