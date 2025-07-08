@@ -94,3 +94,33 @@ func GetActivityStatsHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, stats)
 }
+
+// @Summary Post Step Entry
+// @Description Create a new step entry
+// @Tags activities
+// @Accept json
+// @Produce json
+// @Param step_entry body model.PostStepEntryRequest true "Step entry data"
+// @Success 201 {object} model.StepEntry
+// @Router /api/activities/steps [post]
+func PostStepEntryHandler(c *gin.Context) {
+	var req model.PostStepEntryRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
+		return
+	}
+
+	stepEntry := model.StepEntry{
+		ID:     uuid.New(),
+		UserID: req.UserID,
+		Date:   req.Date,
+		Steps:  req.Steps,
+	}
+
+	if err := db.CreateStepEntry(&stepEntry); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create step entry"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, stepEntry)
+}
