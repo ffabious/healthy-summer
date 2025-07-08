@@ -119,3 +119,22 @@ func PostStepEntryHandler(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, stepEntry)
 }
+
+// @Summary Get Activity Analytics
+// @Description Get activity analytics for a user
+// @Tags activities
+// @Produce json
+// @Param user_id path string true "User ID"
+// @Success 200 {object} model.GetActivityAnalyticsResponse
+// @Router /api/activities/analytics/{user_id} [get]
+// GetActivityAnalyticsHandler retrieves activity analytics for a user
+func GetActivityAnalyticsHandler(c *gin.Context) {
+	user_id := c.Param("user_id")
+	analytics, err := db.GetActivityAnalyticsByUserID(user_id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Activity analytics not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, analytics)
+}

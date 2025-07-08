@@ -186,3 +186,45 @@ func CreateStepEntry(stepEntry *model.StepEntry) error {
 	}
 	return nil
 }
+
+func GetActivityAnalyticsByUserID(userID string) (*model.GetActivityAnalyticsResponse, error) {
+	var analytics model.GetActivityAnalyticsResponse
+
+	// Query activities by type and add to ActivityBreakdown list
+	if err := DB.Model(&model.Activity{}).
+		Select("type, COUNT(*) AS activity_count, COALESCE(SUM(duration_min),0) AS total_duration_min, COALESCE(SUM(calories),0) AS total_calories").
+		Where("user_id = ?", userID).
+		Group("type").
+		Scan(&analytics.ActivityBreakdown).Error; err != nil {
+		return nil, fmt.Errorf("failed to get running activities for user %s: %w", userID, err)
+	}
+
+	// Calculate top activity type based on total_calories / total_duration_min
+	var topActivity model.ActivityAnalyticsByType
+	if err := DB.Model(&model.Activity{}).
+		Select("type, COUNT(*) AS activity_count, COALESCE(SUM(duration_min),0) AS total_duration_min, COALESCE(SUM(calories),0) AS total_calories").
+		Where("user_id = ?", userID).
+		Group("type").
+		Order("COALESCE(SUM(calories),0) / NULLIF(COALESCE(SUM(duration_min),0), 0) DESC").
+		Limit(1).
+		Scan(&topActivity).Error; err != nil {
+		return nil, fmt.Errorf("failed to get top activity for user %s: %w", userID, err)
+	}
+
+	analytics.TopActivity = topActivity
+
+	// Query most calories burned day
+	var mostCaloriesBurnedDay model.MostCaloriesBurnedDay
+	if err := DB.Model(&model.Activity{}).
+		Select("DATE(timestamp) AS date, COALESCE(SUM(calories),0) AS calories").
+		Where("user_id = ?", userID).
+		Group("DATE(timestamp)").
+		Order("calories DESC").
+		Limit(1).
+		Scan(&mostCaloriesBurnedDay).Error; err != nil {
+		return nil, fmt.Errorf("failed to get most calories burned day for user %s: %w", userID, err)
+	}
+	analytics.MostCaloriesBurnedDay = mostCaloriesBurnedDay
+
+	return &analytics, nil
+}
