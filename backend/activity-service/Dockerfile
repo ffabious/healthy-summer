@@ -7,6 +7,10 @@ RUN go mod download
 
 COPY . .
 
+RUN go install github.com/swaggo/swag/cmd/swag@latest
+
+RUN swag init --parseDependency --parseInternal -g cmd/main.go --output ./docs
+
 RUN go build -o activity-service ./cmd
 
 EXPOSE 8081
