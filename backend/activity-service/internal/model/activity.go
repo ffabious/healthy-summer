@@ -45,15 +45,21 @@ type StepEntry struct {
 
 // @name ActivityStats
 type ActivityStats struct {
-	TotalDurationMin int `json:"total_duration_min"`
-	TotalCalories    int `json:"total_calories"`
-	Activities       int `json:"activities"`
+	Today ActivityPeriod `json:"today"`
+	Week  ActivityPeriod `json:"week"`
+	Month ActivityPeriod `json:"month"`
+	Total ActivityPeriod `json:"total"`
+}
+
+type ActivityPeriod struct {
+	ActivityCount int `json:"activity_count"`
+	DurationMin   int `json:"duration_min"`
+	Calories      int `json:"calories"`
+	Steps         int `json:"steps"`
 }
 
 // @name ActivityAnalytics
 type ActivityAnalytics struct {
-	ByType map[string]int `json:"by_type"` // "Running": 120 mins
-	ByDay  map[string]int `json:"by_day"`  // "Mon": 300 kcal
 }
 
 // @name PostActivityRequest
