@@ -34,8 +34,8 @@ type Activity struct {
 }
 
 type StepEntry struct {
-	ID     string    `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
-	UserID string    `json:"user_id" gorm:"type:uuid;not null"`
+	ID     uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+	UserID uuid.UUID `json:"user_id" gorm:"type:uuid;not null"`
 	Date   time.Time `json:"date" gorm:"not null"`
 	Steps  int       `json:"steps" gorm:"not null"`
 }
