@@ -1,11 +1,14 @@
 package handler
 
 import (
+	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
-func ActivityHandler(w http.ResponseWriter, r *http.Request) {
-	println("Activity handler called with method:", r.Method)
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Activity handler"))
+func PostActivitiesHandler(c *gin.Context) {
+	// This is a placeholder for the actual implementation
+	// In a real application, you would handle the POST request to create a new activity
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Activity created successfully",
+	})
 }
