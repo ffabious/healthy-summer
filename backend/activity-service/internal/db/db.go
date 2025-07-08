@@ -87,15 +87,96 @@ func GetActivitiesByUserID(userID string) (*[]model.Activity, error) {
 
 func GetActivityStatsByUserID(userID string) (*model.ActivityStats, error) {
 	var stats model.ActivityStats
+	var period model.ActivityPeriod
+
+	// Query activity stats
 	if err := DB.Model(&model.Activity{}).
-		Select("SUM(duration_min) AS total_duration_min, SUM(calories) AS total_calories, COUNT(*) AS activities").
+		Select("COUNT(*) AS activity_count, COALESCE(SUM(duration_min),0) AS duration_min, COALESCE(SUM(calories),0) AS calories").
+		Where("user_id = ? AND DATE(timestamp) = CURRENT_DATE", userID).
+		Scan(&period).Error; err != nil {
+		return nil, err
+	}
+
+	// Query steps
+	var stepSum struct{ Steps int }
+	if err := DB.Model(&model.StepEntry{}).
+		Select("COALESCE(SUM(steps),0) AS steps").
+		Where("user_id = ? AND date = CURRENT_DATE", userID).
+		Scan(&stepSum).Error; err != nil {
+		return nil, err
+	}
+	period.Steps = stepSum.Steps
+
+	stats.Today = period
+
+	// Query weekly stats
+	var weekPeriod model.ActivityPeriod
+
+	// Query weekly activity stats (last 7 days including today)
+	if err := DB.Model(&model.Activity{}).
+		Select("COUNT(*) AS activity_count, COALESCE(SUM(duration_min),0) AS duration_min, COALESCE(SUM(calories),0) AS calories").
+		Where("user_id = ? AND DATE(timestamp) >= CURRENT_DATE - INTERVAL '6 days'", userID).
+		Scan(&weekPeriod).Error; err != nil {
+		return nil, err
+	}
+
+	// Query weekly steps
+	var weekStepSum struct{ Steps int }
+	if err := DB.Model(&model.StepEntry{}).
+		Select("COALESCE(SUM(steps),0) AS steps").
+		Where("user_id = ? AND date >= CURRENT_DATE - INTERVAL '6 days'", userID).
+		Scan(&weekStepSum).Error; err != nil {
+		return nil, err
+	}
+	weekPeriod.Steps = weekStepSum.Steps
+
+	stats.Week = weekPeriod
+
+	var monthPeriod model.ActivityPeriod
+
+	// Query monthly activity stats (last 30 days including today)
+	if err := DB.Model(&model.Activity{}).
+		Select("COUNT(*) AS activity_count, COALESCE(SUM(duration_min),0) AS duration_min, COALESCE(SUM(calories),0) AS calories").
+		Where("user_id = ? AND DATE(timestamp) >= CURRENT_DATE - INTERVAL '29 days'", userID).
+		Scan(&monthPeriod).Error; err != nil {
+		return nil, err
+	}
+
+	// Query monthly steps
+	var monthStepSum struct{ Steps int }
+	if err := DB.Model(&model.StepEntry{}).
+		Select("COALESCE(SUM(steps),0) AS steps").
+		Where("user_id = ? AND date >= CURRENT_DATE - INTERVAL '29 days'", userID).
+		Scan(&monthStepSum).Error; err != nil {
+		return nil, err
+	}
+	monthPeriod.Steps = monthStepSum.Steps
+
+	stats.Month = monthPeriod
+
+	// Query total activity stats
+	var totalPeriod model.ActivityPeriod
+
+	// Query total activity stats (all time)
+	if err := DB.Model(&model.Activity{}).
+		Select("COUNT(*) AS activity_count, COALESCE(SUM(duration_min),0) AS duration_min, COALESCE(SUM(calories),0) AS calories").
 		Where("user_id = ?", userID).
-		Scan(&stats).Error; err != nil {
-		return nil, fmt.Errorf("failed to get activity stats for user %s: %w", userID, err)
+		Scan(&totalPeriod).Error; err != nil {
+		return nil, err
 	}
-	if stats.Activities == 0 {
-		return nil, nil // No activities found
+
+	// Query total steps (all time)
+	var totalStepSum struct{ Steps int }
+	if err := DB.Model(&model.StepEntry{}).
+		Select("COALESCE(SUM(steps),0) AS steps").
+		Where("user_id = ?", userID).
+		Scan(&totalStepSum).Error; err != nil {
+		return nil, err
 	}
+	totalPeriod.Steps = totalStepSum.Steps
+
+	stats.Total = totalPeriod
+
 	return &stats, nil
 }
 

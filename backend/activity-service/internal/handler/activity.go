@@ -73,22 +73,17 @@ func GetActivitiesHandler(c *gin.Context) {
 }
 
 // @Summary Get Activity Stats
-// @Description Get activity statistics for a user
+// @Description Get activity stats for a user
 // @Tags activities
 // @Produce json
 // @Param user_id path string true "User ID"
 // @Success 200 {object} model.ActivityStats
 // @Router /api/activities/stats/{user_id} [get]
 func GetActivityStatsHandler(c *gin.Context) {
-	userID := c.Param("user_id")
-	stats, err := db.GetActivityStatsByUserID(userID)
+	user_id := c.Param("user_id")
+	stats, err := db.GetActivityStatsByUserID(user_id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Activity stats not found"})
-		return
-	}
-
-	if stats == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "No activity stats found for this user"})
 		return
 	}
 
