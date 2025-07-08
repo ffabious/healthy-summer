@@ -58,8 +58,11 @@ type ActivityPeriod struct {
 	Steps         int `json:"steps"`
 }
 
-// @name ActivityAnalytics
-type ActivityAnalytics struct {
+type ActivityAnalyticsByType struct {
+	Type             string `json:"type"`
+	ActivityCount    int    `json:"activity_count"`
+	TotalDurationMin int    `json:"total_duration_min"`
+	TotalCalories    int    `json:"total_calories"`
 }
 
 // @name PostActivityRequest
@@ -105,9 +108,17 @@ type GetActivityAnalyticsRequest struct {
 	UserID uuid.UUID `json:"user_id" binding:"required"`
 }
 
+
+type MostCaloriesBurnedDay struct {
+	Date     time.Time `json:"date"`
+	Calories int       `json:"calories"`
+}
+
 // @name GetActivityAnalyticsResponse
 type GetActivityAnalyticsResponse struct {
-	Analytics ActivityAnalytics `json:"analytics"`
+	ActivityBreakdown     []ActivityAnalyticsByType `json:"activity_breakdown"`
+	TopActivity           ActivityAnalyticsByType   `json:"top_activity"`
+	MostCaloriesBurnedDay MostCaloriesBurnedDay     `json:"most_calories_burned_day"`
 }
 
 // @name PostStepEntryRequest
