@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/screens/home/activity_history_screen.dart';
+import 'package:flutter_app/screens/home/home.dart';
 import 'package:flutter_app/screens/auth/splash_screen.dart';
-import 'package:flutter_app/screens/home/add_activity_screen.dart';
 import 'screens/auth/auth.dart';
 
 class App extends StatelessWidget {
@@ -26,6 +25,8 @@ class App extends StatelessWidget {
         '/register': (context) => const RegisterScreen(),
         '/activity-history': (context) => const ActivityHistoryScreen(),
         '/add-activity': (context) => const AddActivityScreen(),
+        '/add-meal': (context) => const AddMealScreen(),
+        '/add-water-intake': (context) => const AddWaterIntakeScreen(),
       },
     );
   }
