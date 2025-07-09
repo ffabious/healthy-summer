@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/screens/home/profile_screen.dart';
 
 class HomeTabsScreen extends StatefulWidget {
   const HomeTabsScreen({super.key});
@@ -13,7 +14,7 @@ class _HomeTabsScreenState extends State<HomeTabsScreen> {
   static const List<Widget> _tabs = <Widget>[
     Center(child: Text('Home')),
     Center(child: Text('Search')),
-    Center(child: Text('Profile')),
+    ProfileScreen(),
   ];
 
   void _onTabTapped(int index) {
