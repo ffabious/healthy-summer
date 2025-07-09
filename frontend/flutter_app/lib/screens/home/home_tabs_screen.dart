@@ -12,8 +12,11 @@ class _HomeTabsScreenState extends State<HomeTabsScreen> {
   int _selectedIndex = 0;
 
   static const List<Widget> _tabs = <Widget>[
-    Center(child: Text('Home')),
-    Center(child: Text('Search')),
+    // Replace these with your actual screen widgets for each tab
+    Center(child: Text("Activities")),
+    Center(child: Text("Nutrition")),
+    Center(child: Text("Social")),
+    Center(child: Text("Progress")),
     ProfileScreen(),
   ];
 
@@ -31,9 +34,31 @@ class _HomeTabsScreenState extends State<HomeTabsScreen> {
         currentIndex: _selectedIndex,
         onTap: _onTabTapped,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.directions_run),
+            label: 'Activities',
+            backgroundColor: Colors.orange,
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.restaurant),
+            label: 'Nutrition',
+            backgroundColor: Colors.green,
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.group),
+            label: 'Social',
+            backgroundColor: Colors.purple,
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.show_chart),
+            label: 'Progress',
+            backgroundColor: Colors.blue,
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+            backgroundColor: Colors.teal,
+          ),
         ],
       ),
     );
