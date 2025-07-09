@@ -10,12 +10,12 @@ class SplashScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final auth = ref.watch(authProvider);
+    final authState = ref.watch(authProvider);
 
-    return auth.when(
+    return authState.when(
       data: (user) => user != null ? HomeTabsScreen() : LoginScreen(),
       loading: () => CircularProgressIndicator(),
-      error: (e, _) => ErrorScreen(message: e.toString()),
+      error: (e, _) => ErrorScreen(error: e.toString()),
     );
   }
 }

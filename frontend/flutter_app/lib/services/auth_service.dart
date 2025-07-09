@@ -1,17 +1,31 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:flutter_app/models/models.dart';
 import 'package:flutter_app/utils/local_endpoints.dart';
 import 'package:flutter/foundation.dart';
 
 class AuthService {
-  final Dio _dio = Dio(
-    BaseOptions(
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-    ),
-  );
+  late final Dio _dio;
+
+  AuthService() {
+    _dio = Dio(
+      BaseOptions(
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      ),
+    );
+
+    // Accept self-signed certificate
+    (_dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
+      final client = HttpClient()
+        ..badCertificateCallback =
+            (X509Certificate cert, String host, int port) => host == addr;
+      return client;
+    };
+  }
 
   Future<RegisterResponseModel> register(RegisterRequestModel request) async {
     try {
@@ -54,7 +68,7 @@ class AuthService {
     try {
       final response = await _dio.get(
         userEndpoint,
-        options: Options(headers: {'Authorization Bearer': token}),
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
       debugPrint("Response code: ${response.statusCode}");
       if (response.statusCode == 200) {

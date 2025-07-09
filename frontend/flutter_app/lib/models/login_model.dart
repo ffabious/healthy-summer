@@ -13,11 +13,13 @@ class LoginRequestModel {
 
 class LoginResponseModel {
   final String token;
+  final String tokenType;
   final UserModel user;
   final DateTime expiresAt;
 
   LoginResponseModel({
     required this.token,
+    this.tokenType = 'Bearer',
     required this.user,
     required this.expiresAt,
   });
@@ -25,6 +27,7 @@ class LoginResponseModel {
   factory LoginResponseModel.fromJson(Map<String, dynamic> json) {
     return LoginResponseModel(
       token: json['token'] as String,
+      tokenType: json['token_type'] as String,
       user: UserModel.fromJson(json['user'] as Map<String, dynamic>),
       expiresAt: DateTime.parse(json['expires_at'] as String),
     );
