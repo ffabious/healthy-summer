@@ -42,6 +42,7 @@ func main() {
 	protected := r.Group("/api/users")
 	protected.Use(auth.JWTMiddleware())
 
+	protected.GET("/me", handler.GetCurrentUserHandler)
 	// protected.GET("/profile", handler.GetProfileHandler)
 	// protected.PUT("/profile", handler.UpdateProfileHandler)
 	// protected.GET("/friends", handler.GetFriendsHandler)

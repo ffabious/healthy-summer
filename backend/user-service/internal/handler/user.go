@@ -27,8 +27,8 @@ func LoginHandler(c *gin.Context) {
 
 	// Simulate user authentication
 	if req.Email != "" && req.Password != "" {
-		// Generate a dummy JWT token for the user
-		token, err := auth.GenerateJWT(uuid.UUID{}) // Replace with actual user ID from database
+		userID := uuid.New()
+		token, err := auth.GenerateJWT(userID) // Replace with actual user ID from database
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 			return
@@ -79,4 +79,30 @@ func RegisterHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, resp)
+}
+
+// @Summary Get Current User
+// @Description Get the currently authenticated user
+// @Tags user
+// @Produce json
+// @Success 200 {object} model.User
+// @Security BearerAuth
+// @Router /api/users/me [get]
+func GetCurrentUserHandler(c *gin.Context) {
+	// Extract user ID from JWT token
+	userID, err := auth.ExtractUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Simulate fetching user from database
+	user := model.User{
+		ID:        userID,
+		Email:     "john.doe@mail.com",
+		FirstName: "John",
+		LastName:  "Doe",
+	}
+
+	c.JSON(http.StatusOK, user)
 }
