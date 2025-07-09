@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/screens/auth/splash_screen.dart';
 import 'screens/auth/auth.dart';
 
 class App extends StatelessWidget {
@@ -17,7 +18,7 @@ class App extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: AppScreen(),
+      home: SplashScreen(),
       routes: {
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
