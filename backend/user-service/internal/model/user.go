@@ -19,6 +19,7 @@ type LoginRequest struct {
 type LoginResponse struct {
 	User      User      `json:"user"`
 	Token     string    `json:"token"`
+	TokenType string    `json:"token_type" example:"Bearer"`
 	ExpiresAt time.Time `json:"expires_at"`
 }
 

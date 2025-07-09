@@ -1,14 +1,25 @@
-FROM golang:1.24.4-alpine
+# Builder
+FROM golang:1.24.4-alpine AS builder
 
 WORKDIR /app
-
 COPY go.mod go.sum ./
 RUN go mod download
-
 COPY . .
-
+RUN go install github.com/swaggo/swag/cmd/swag@latest
+RUN rm -rf ./docs && swag init --parseDependency --parseInternal -g cmd/main.go --output ./docs
 RUN go build -o nutrition-service ./cmd
 
-EXPOSE 8082
+# Runtime
+FROM alpine:3.20
 
-CMD ["./nutrition-service"]
+RUN apk add --no-cache openssl
+
+WORKDIR /app
+COPY --from=builder /app/nutrition-service .
+COPY --from=builder /app/docs ./docs
+
+COPY ./entrypoint.sh .
+RUN chmod +x entrypoint.sh
+
+EXPOSE 8082
+CMD ["./entrypoint.sh"]
