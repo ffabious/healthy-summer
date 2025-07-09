@@ -12,9 +12,14 @@ RUN go build -o activity-service ./cmd
 # Runtime
 FROM alpine:3.20
 
+RUN apk add --no-cache openssl
+
 WORKDIR /app
 COPY --from=builder /app/activity-service .
 COPY --from=builder /app/docs ./docs
 
+COPY ./entrypoint.sh .
+RUN chmod +x entrypoint.sh
+
 EXPOSE 8081
-CMD ["./activity-service"]
+CMD ["./entrypoint.sh"]
