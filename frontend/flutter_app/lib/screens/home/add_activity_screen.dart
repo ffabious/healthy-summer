@@ -1,0 +1,141 @@
+import 'package:flutter/material.dart';
+
+class AddActivityScreen extends StatefulWidget {
+  const AddActivityScreen({super.key});
+
+  @override
+  State<AddActivityScreen> createState() => _AddActivityScreenState();
+}
+
+class _AddActivityScreenState extends State<AddActivityScreen> {
+  final _formKey = GlobalKey<FormState>();
+
+  String? _selectedType;
+  final List<String> _activityTypes = [
+    'Running',
+    'Cycling',
+    'Swimming',
+    'Walking',
+    'Other',
+  ];
+
+  int? _durationMin;
+  String? _intensity;
+  int? _calories;
+  final _locationController = TextEditingController();
+
+  @override
+  void dispose() {
+    _locationController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (_formKey.currentState?.validate() ?? false) {
+      _formKey.currentState!.save();
+
+      // TODO: Send data to backend or provider
+      // Example:
+      // final newActivity = Activity(
+      //   type: _selectedType!,
+      //   durationMin: _durationMin!,
+      //   intensity: _intensity!,
+      //   calories: _calories!,
+      //   location: _locationController.text,
+      // );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Activity added successfully')),
+      );
+
+      Navigator.pop(context);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Add Activity')),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(labelText: 'Activity Type'),
+                items: _activityTypes
+                    .map(
+                      (type) =>
+                          DropdownMenuItem(value: type, child: Text(type)),
+                    )
+                    .toList(),
+                value: _selectedType,
+                onChanged: (value) => setState(() => _selectedType = value),
+                validator: (value) =>
+                    value == null ? 'Please select activity type' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Duration (minutes)',
+                  hintText: 'e.g. 30',
+                ),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  final n = int.tryParse(value ?? '');
+                  if (n == null || n <= 0) return 'Enter valid duration';
+                  return null;
+                },
+                onSaved: (value) => _durationMin = int.parse(value!),
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(labelText: 'Intensity'),
+                items: ['Low', 'Medium', 'High']
+                    .map(
+                      (level) =>
+                          DropdownMenuItem(value: level, child: Text(level)),
+                    )
+                    .toList(),
+                value: _intensity,
+                onChanged: (value) => setState(() => _intensity = value),
+                validator: (value) =>
+                    value == null ? 'Please select intensity' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Calories Burned',
+                  hintText: 'e.g. 250',
+                ),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  final n = int.tryParse(value ?? '');
+                  if (n == null || n < 0) return 'Enter valid calories';
+                  return null;
+                },
+                onSaved: (value) => _calories = int.parse(value!),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _locationController,
+                decoration: const InputDecoration(
+                  labelText: 'Location (optional)',
+                ),
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _submit,
+                  child: const Text('Add Activity'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

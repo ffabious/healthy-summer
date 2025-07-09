@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/screens/home/activities_screen.dart';
 import 'package:flutter_app/screens/home/profile_screen.dart';
 
 class HomeTabsScreen extends StatefulWidget {
@@ -13,7 +14,7 @@ class _HomeTabsScreenState extends State<HomeTabsScreen> {
 
   static const List<Widget> _tabs = <Widget>[
     // Replace these with your actual screen widgets for each tab
-    Center(child: Text("Activities")),
+    ActivitiesScreen(),
     Center(child: Text("Nutrition")),
     Center(child: Text("Social")),
     Center(child: Text("Progress")),
