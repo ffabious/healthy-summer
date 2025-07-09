@@ -4,12 +4,14 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/ffabious/healthy-summer/user-service/internal/auth"
 	"github.com/ffabious/healthy-summer/user-service/internal/model"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // @Summary User Login
-// @Description Authenticate user
+// @Description Login a user and return a JWT token
 // @Tags auth
 // @Accept json
 // @Produce json
@@ -23,18 +25,31 @@ func LoginHandler(c *gin.Context) {
 		return
 	}
 
-	resp := model.LoginResponse{
-		Token: "dummy-token",
-		User: model.User{
-			ID:        "12345",
-			Email:     req.Email,
-			FirstName: "John",
-			LastName:  "Doe",
-		},
-		ExpiresAt: time.Now().Add(24 * time.Hour),
-	}
+	// Simulate user authentication
+	if req.Email != "" && req.Password != "" {
+		// Generate a dummy JWT token for the user
+		token, err := auth.GenerateJWT(uuid.UUID{}) // Replace with actual user ID from database
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+			return
+		}
 
-	c.JSON(http.StatusOK, resp)
+		resp := model.LoginResponse{
+			Token:     token,
+			TokenType: "Bearer",
+			ExpiresAt: time.Now().Add(24 * time.Hour),
+			User: model.User{
+				ID:        "12345",
+				Email:     req.Email,
+				FirstName: "John",
+				LastName:  "Doe",
+			},
+		}
+
+		c.JSON(http.StatusOK, resp)
+	} else {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+	}
 }
 
 // @Summary User Registration

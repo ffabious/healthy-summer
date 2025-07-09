@@ -5,6 +5,7 @@ import (
 	"os"
 
 	_ "github.com/ffabious/healthy-summer/user-service/docs"
+	"github.com/ffabious/healthy-summer/user-service/internal/auth"
 	"github.com/ffabious/healthy-summer/user-service/internal/handler"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -31,12 +32,21 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	cert_file := os.Getenv("TLS_CERT_PATH")
-	key_file := os.Getenv("TLS_KEY_PATH")
-
 	r.GET("/api/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	r.POST("/api/users/login", handler.LoginHandler)
 	r.POST("/api/users/register", handler.RegisterHandler)
+
+	cert_file := os.Getenv("TLS_CERT_PATH")
+	key_file := os.Getenv("TLS_KEY_PATH")
+
+	protected := r.Group("/api/users")
+	protected.Use(auth.JWTMiddleware())
+
+	// protected.GET("/profile", handler.GetProfileHandler)
+	// protected.PUT("/profile", handler.UpdateProfileHandler)
+	// protected.GET("/friends", handler.GetFriendsHandler)
+	// protected.POST("/friends/request", handler.SendFriendRequestHandler)
+	// protected.POST("/achievements", handler.AddAchievementHandler)
 
 	if cert_file != "" && key_file != "" {
 		runTLS(r, cert_file, key_file, port)
