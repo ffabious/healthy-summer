@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/widgets/animated_loading_text.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_app/providers/auth_provider.dart';
 import 'package:flutter_app/screens/auth/auth.dart';
@@ -14,8 +15,28 @@ class SplashScreen extends ConsumerWidget {
 
     return authState.when(
       data: (user) => user != null ? HomeTabsScreen() : LoginScreen(),
-      loading: () => CircularProgressIndicator(),
+      loading: () => LoadingScreen(),
       error: (e, _) => ErrorScreen(error: e.toString()),
+    );
+  }
+}
+
+class LoadingScreen extends StatelessWidget {
+  const LoadingScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(height: 20),
+            const AnimatedLoadingText(),
+          ],
+        ),
+      ),
     );
   }
 }
