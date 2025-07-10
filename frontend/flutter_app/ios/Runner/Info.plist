@@ -47,5 +47,7 @@
 	<true/>
 	<key>NSUserDefaultsSuiteName</key>
 	<string>FlutterSharedPreferences</string>
+	<key>NSMotionUsageDescription</key>
+	<string>This application tracks your steps</string>
 </dict>
 </plist>
