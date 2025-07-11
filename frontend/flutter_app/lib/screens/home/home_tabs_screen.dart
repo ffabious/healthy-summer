@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app/screens/home/activities_screen.dart';
 import 'package:flutter_app/screens/home/nutrition_screen.dart';
 import 'package:flutter_app/screens/home/profile_screen.dart';
+import 'package:flutter_app/screens/home/social_screen.dart';
 
 class HomeTabsScreen extends StatefulWidget {
   const HomeTabsScreen({super.key});
@@ -13,10 +14,10 @@ class HomeTabsScreen extends StatefulWidget {
 class _HomeTabsScreenState extends State<HomeTabsScreen> {
   int _selectedIndex = 0;
 
-  static const List<Widget> _tabs = <Widget>[
+  static final List<Widget> _tabs = <Widget>[
     ActivitiesScreen(),
     NutritionScreen(),
-    Center(child: Text("Social")),
+    SocialScreen(),
     Center(child: Text("Progress")),
     ProfileScreen(),
   ];
@@ -48,7 +49,7 @@ class _HomeTabsScreenState extends State<HomeTabsScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.group),
             label: 'Social',
-            backgroundColor: Colors.purple,
+            backgroundColor: Colors.deepPurple,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.show_chart),

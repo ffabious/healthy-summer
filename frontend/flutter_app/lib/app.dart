@@ -27,6 +27,16 @@ class App extends StatelessWidget {
         '/add-activity': (context) => const AddActivityScreen(),
         '/add-meal': (context) => const AddMealScreen(),
         '/add-water-intake': (context) => const AddWaterIntakeScreen(),
+        '/friend-list': (context) => const FriendListScreen(),
+        '/find-friends': (context) => const FindFriendsScreen(),
+        '/social-feed': (context) => const SocialFeedScreen(),
+        '/challenges': (context) => ChallengesScreen(),
+        '/chat': (context) {
+          final friendName =
+              ModalRoute.of(context)?.settings.arguments as String?;
+          return ChatScreen(friendName: friendName ?? 'Unknown');
+        },
+        '/messages': (context) => MessagesScreen(),
       },
     );
   }
