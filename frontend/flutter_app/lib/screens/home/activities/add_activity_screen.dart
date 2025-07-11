@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/services/services.dart';
+import 'package:flutter_app/models/models.dart';
 
 class AddActivityScreen extends StatefulWidget {
   const AddActivityScreen({super.key});
@@ -44,11 +46,45 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
       //   location: _locationController.text,
       // );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Activity added successfully')),
+      if (_selectedType == null ||
+          _durationMin == null ||
+          _intensity == null ||
+          _calories == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please fill all required fields')),
+        );
+        return;
+      }
+
+      final data = PostActivityRequestModel(
+        userId: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+        type: _selectedType!,
+        durationMin: _durationMin!,
+        intensity: _intensity!.toLowerCase(),
+        calories: _calories!,
+        location: _locationController.text.isEmpty
+            ? null
+            : _locationController.text,
+        timestamp: DateTime.now(),
       );
 
-      Navigator.pop(context);
+      debugPrint('Posting activity: ${data.toJson()}');
+
+      final response = ActivityService().postActivity(data);
+      response
+          .then((value) {
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Activity added successfully')),
+            );
+            Navigator.pop(context);
+          })
+          .catchError((error) {
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to add activity: $error')),
+            );
+          });
     }
   }
 
