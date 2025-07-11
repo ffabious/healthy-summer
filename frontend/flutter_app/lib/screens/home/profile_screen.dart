@@ -124,8 +124,8 @@ class ProfileBody extends ConsumerWidget {
               icon: Icon(Icons.logout),
               label: Text("Logout"),
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.red,
-                side: BorderSide(color: Colors.red, width: 2),
+                foregroundColor: Colors.teal,
+                side: BorderSide(color: Colors.teal, width: 2),
               ),
             ),
           ),

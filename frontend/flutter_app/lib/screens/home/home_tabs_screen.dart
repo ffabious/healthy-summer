@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/screens/home/activities_screen.dart';
-import 'package:flutter_app/screens/home/nutrition_screen.dart';
-import 'package:flutter_app/screens/home/profile_screen.dart';
-import 'package:flutter_app/screens/home/social_screen.dart';
+import 'package:flutter_app/screens/home/home.dart';
 
 class HomeTabsScreen extends StatefulWidget {
   const HomeTabsScreen({super.key});
@@ -18,7 +15,7 @@ class _HomeTabsScreenState extends State<HomeTabsScreen> {
     ActivitiesScreen(),
     NutritionScreen(),
     SocialScreen(),
-    Center(child: Text("Progress")),
+    ProgressScreen(),
     ProfileScreen(),
   ];
 

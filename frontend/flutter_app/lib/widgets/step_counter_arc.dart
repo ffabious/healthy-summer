@@ -72,7 +72,7 @@ class AnimatedStepCounterArcState extends State<AnimatedStepCounterArc>
             ),
             const SizedBox(height: 8),
             Text(
-              'Steps',
+              'Steps Today',
               style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
             ),
           ],

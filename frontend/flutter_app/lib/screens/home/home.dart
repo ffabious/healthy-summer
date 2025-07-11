@@ -14,3 +14,5 @@ export 'community_challenges_list_screen.dart';
 export 'friend_challenges_list_screen.dart';
 export 'chat_screen.dart';
 export 'messages_screen.dart';
+export 'progress_screen.dart';
+export 'social_screen.dart';
