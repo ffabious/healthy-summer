@@ -4,13 +4,23 @@ services:
     container_name: postgres-db
     env_file:
       - /etc/healthy-summer/secrets/db.env
+    restart: always
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
   user-service:
     build: ./user-service
     container_name: user-service
+    restart: always
     env_file:
       - /etc/healthy-summer/secrets/user-service.env
     ports:
@@ -23,6 +33,7 @@ services:
   activity-service:
     build: ./activity-service
     container_name: activity-service
+    restart: always
     env_file:
       - /etc/healthy-summer/secrets/activity-service.env
     ports:
@@ -35,6 +46,7 @@ services:
   nutrition-service:
     build: ./nutrition-service
     container_name: nutrition-service
+    restart: always
     env_file:
       - /etc/healthy-summer/secrets/nutrition-service.env
     ports:
@@ -47,6 +59,7 @@ services:
   social-service:
     build: ./social-service
     container_name: social-service
+    restart: always
     env_file:
       - /etc/healthy-summer/secrets/social-service.env
     ports:
