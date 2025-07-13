@@ -3,7 +3,7 @@ services:
     image: postgres:15
     container_name: postgres-db
     env_file:
-      - /etc/healthy_summer/secrets/db.env
+      - /etc/healthy-summer/secrets/db.env
     ports: []
     volumes:
       - pgdata:/var/lib/postgresql/data
@@ -11,49 +11,49 @@ services:
     build: ./user-service
     container_name: user-service
     env_file:
-      - /etc/healthy_summer/secrets/user-service.env
+      - /etc/healthy-summer/secrets/user-service.env
     ports:
       - "8084:8084"
     depends_on:
       - db
     volumes:
-      - /etc/healthy_summer/secrets/user-service.env:/etc/healthy_summer/secrets/user-service.env:ro
+      - /etc/healthy-summer/secrets/user-service.env:/etc/healthy-summer/secrets/user-service.env:ro
 
   activity-service:
     build: ./activity-service
     container_name: activity-service
     env_file:
-      - /etc/healthy_summer/secrets/activity-service.env
+      - /etc/healthy-summer/secrets/activity-service.env
     ports:
       - "8081:8081"
     depends_on:
       - db
     volumes:
-    - /etc/healthy_summer/secrets/activity-service.env:/etc/healthy_summer/secrets/activity-service.env:ro
+    - /etc/healthy-summer/secrets/activity-service.env:/etc/healthy-summer/secrets/activity-service.env:ro
 
   nutrition-service:
     build: ./nutrition-service
     container_name: nutrition-service
     env_file:
-      - /etc/healthy_summer/secrets/nutrition-service.env
+      - /etc/healthy-summer/secrets/nutrition-service.env
     ports:
       - "8082:8082"
     depends_on:
       - db
     volumes:
-      - /etc/healthy_summer/secrets/nutrition-service.env:/etc/healthy_summer/secrets/nutrition-service.env:ro
+      - /etc/healthy-summer/secrets/nutrition-service.env:/etc/healthy-summer/secrets/nutrition-service.env:ro
 
   social-service:
     build: ./social-service
     container_name: social-service
     env_file:
-      - /etc/healthy_summer/secrets/social-service.env
+      - /etc/healthy-summer/secrets/social-service.env
     ports:
       - "8083:8083"
     depends_on:
       - db
     volumes:
-      - /etc/healthy_summer/secrets/social-service.env:/etc/healthy_summer/secrets/social-service.env:ro
+      - /etc/healthy-summer/secrets/social-service.env:/etc/healthy-summer/secrets/social-service.env:ro
 
 volumes:
   pgdata:
