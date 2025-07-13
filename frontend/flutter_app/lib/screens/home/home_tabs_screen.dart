@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/screens/home/home.dart';
 
 class HomeTabsScreen extends StatefulWidget {
   const HomeTabsScreen({super.key});
@@ -10,10 +11,12 @@ class HomeTabsScreen extends StatefulWidget {
 class _HomeTabsScreenState extends State<HomeTabsScreen> {
   int _selectedIndex = 0;
 
-  static const List<Widget> _tabs = <Widget>[
-    Center(child: Text('Home')),
-    Center(child: Text('Search')),
-    Center(child: Text('Profile')),
+  static final List<Widget> _tabs = <Widget>[
+    ActivitiesScreen(),
+    NutritionScreen(),
+    SocialScreen(),
+    ProgressScreen(),
+    ProfileScreen(),
   ];
 
   void _onTabTapped(int index) {
@@ -30,9 +33,31 @@ class _HomeTabsScreenState extends State<HomeTabsScreen> {
         currentIndex: _selectedIndex,
         onTap: _onTabTapped,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.directions_run),
+            label: 'Activities',
+            backgroundColor: Colors.orange,
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.restaurant),
+            label: 'Nutrition',
+            backgroundColor: Colors.green,
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.group),
+            label: 'Social',
+            backgroundColor: Colors.deepPurple,
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.show_chart),
+            label: 'Progress',
+            backgroundColor: Colors.blue,
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+            backgroundColor: Colors.teal,
+          ),
         ],
       ),
     );

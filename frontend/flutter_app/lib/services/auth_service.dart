@@ -36,7 +36,7 @@ class AuthService {
 
       debugPrint("Response code: ${response.statusCode}");
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 201) {
         return RegisterResponseModel.fromJson(response.data);
       } else {
         throw Exception('Failed to register user');

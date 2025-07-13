@@ -67,18 +67,32 @@ func RegisterHandler(c *gin.Context) {
 		return
 	}
 
-	resp := model.RegisterResponse{
-		Token: "dummy-token",
-		User: model.User{
-			ID:        "12345",
-			Email:     req.Email,
-			FirstName: req.FirstName,
-			LastName:  req.LastName,
-		},
-		ExpiresAt: time.Now().Add(24 * time.Hour),
-	}
+	// Simulate user registration
+	if req.Email != "" && req.Password != "" && req.FirstName != "" && req.LastName != "" {
+		userID := uuid.New()
+		token, err := auth.GenerateJWT(userID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+			return
+		}
 
-	c.JSON(http.StatusCreated, resp)
+		resp := model.LoginResponse{
+			Token:     token,
+			TokenType: "Bearer",
+			ExpiresAt: time.Now().Add(24 * time.Hour),
+			User: model.User{
+				ID:        "12345",
+				Email:     req.Email,
+				FirstName: "John",
+				LastName:  "Doe",
+			},
+		}
+
+		c.JSON(http.StatusCreated, resp)
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid registration data"})
+		return
+	}
 }
 
 // @Summary Get Current User

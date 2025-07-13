@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/screens/home/home.dart';
 import 'package:flutter_app/screens/auth/splash_screen.dart';
 import 'screens/auth/auth.dart';
 
@@ -18,47 +19,25 @@ class App extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: SplashScreen(),
       routes: {
+        '/': (context) => const SplashScreen(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
+        '/activity-history': (context) => const ActivityHistoryScreen(),
+        '/add-activity': (context) => const AddActivityScreen(),
+        '/add-meal': (context) => const AddMealScreen(),
+        '/add-water-intake': (context) => const AddWaterIntakeScreen(),
+        '/friend-list': (context) => const FriendListScreen(),
+        '/find-friends': (context) => const FindFriendsScreen(),
+        '/social-feed': (context) => const SocialFeedScreen(),
+        '/challenges': (context) => ChallengesScreen(),
+        '/chat': (context) {
+          final friendName =
+              ModalRoute.of(context)?.settings.arguments as String?;
+          return ChatScreen(friendName: friendName ?? 'Unknown');
+        },
+        '/messages': (context) => MessagesScreen(),
       },
-    );
-  }
-}
-
-class AppScreen extends StatelessWidget {
-  const AppScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Healthy Summer')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Welcome to Healthy Summer!',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/login');
-              },
-              child: const Text('Login'),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/register');
-              },
-              child: const Text('Register'),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

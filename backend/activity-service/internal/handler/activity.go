@@ -64,11 +64,6 @@ func GetActivitiesHandler(c *gin.Context) {
 		return
 	}
 
-	if len(*activity) == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error": "No activities found for this user"})
-		return
-	}
-
 	c.JSON(http.StatusOK, activity)
 }
 

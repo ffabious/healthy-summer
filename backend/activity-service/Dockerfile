@@ -22,4 +22,5 @@ COPY ./entrypoint.sh .
 RUN chmod +x entrypoint.sh
 
 EXPOSE 8081
-CMD ["./entrypoint.sh"]
+# CMD ["./entrypoint.sh"]
+CMD ["./activity-service"]
