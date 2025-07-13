@@ -36,8 +36,8 @@ func main() {
 	r.POST("/api/users/login", handler.LoginHandler)
 	r.POST("/api/users/register", handler.RegisterHandler)
 
-	cert_file := os.Getenv("TLS_CERT_PATH")
-	key_file := os.Getenv("TLS_KEY_PATH")
+	// cert_file := os.Getenv("TLS_CERT_PATH")
+	// key_file := os.Getenv("TLS_KEY_PATH")
 
 	protected := r.Group("/api/users")
 	protected.Use(auth.JWTMiddleware())
@@ -49,11 +49,7 @@ func main() {
 	// protected.POST("/friends/request", handler.SendFriendRequestHandler)
 	// protected.POST("/achievements", handler.AddAchievementHandler)
 
-	if cert_file != "" && key_file != "" {
-		runTLS(r, cert_file, key_file, port)
-	} else {
-		runRegular(r, port)
-	}
+	runRegular(r, port)
 }
 
 func runRegular(r *gin.Engine, port string) {
@@ -66,11 +62,11 @@ func runRegular(r *gin.Engine, port string) {
 	log.Println("User service is running without TLS")
 }
 
-func runTLS(r *gin.Engine, certFile, keyFile string, port string) {
-	log.Printf("Starting user service on :%s with TLS", port)
-	if err := r.RunTLS("0.0.0.0:"+port, certFile, keyFile); err != nil {
-		log.Fatalf("Failed to start user service with TLS: %v", err)
-	}
-	log.Println("User service started successfully with TLS")
-	log.Println("Swagger documentation available at /api/docs/index.html")
-}
+// func runTLS(r *gin.Engine, certFile, keyFile string, port string) {
+// 	log.Printf("Starting user service on :%s with TLS", port)
+// 	if err := r.RunTLS("0.0.0.0:"+port, certFile, keyFile); err != nil {
+// 		log.Fatalf("Failed to start user service with TLS: %v", err)
+// 	}
+// 	log.Println("User service started successfully with TLS")
+// 	log.Println("Swagger documentation available at /api/docs/index.html")
+// }
