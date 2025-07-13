@@ -4,7 +4,8 @@ services:
     container_name: postgres-db
     env_file:
       - /etc/healthy-summer/secrets/db.env
-    ports: []
+    ports:
+      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
   user-service:

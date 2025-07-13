@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:flutter_app/models/models.dart';
-import 'package:flutter_app/utils/local_endpoints.dart';
+import 'package:flutter_app/utils/endpoints.dart';
 import 'package:flutter/foundation.dart';
 
 class AuthService {
