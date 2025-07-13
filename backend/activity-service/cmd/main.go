@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	if err := godotenv.Load(); err != nil {
+	if err := godotenv.Load("/etc/healthy-summer/secrets/activity-service.env"); err != nil {
 		log.Println("Error:", err.Error())
 		log.Println("No .env file found, using default environment variables")
 	}

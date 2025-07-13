@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	if err := godotenv.Load(); err != nil {
+	if err := godotenv.Load("/etc/healthy-summer/secrets/user-service.env"); err != nil {
 		log.Println("No .env file found, using default environment variables")
 	}
 	port := os.Getenv("PORT")
