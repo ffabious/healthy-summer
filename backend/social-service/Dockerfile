@@ -22,4 +22,5 @@ COPY ./entrypoint.sh .
 RUN chmod +x entrypoint.sh
 
 EXPOSE 8083
-CMD ["./entrypoint.sh"]
+# CMD ["./entrypoint.sh"]
+CMD ["./social-service"]
