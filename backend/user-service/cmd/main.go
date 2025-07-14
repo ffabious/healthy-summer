@@ -6,6 +6,7 @@ import (
 
 	_ "github.com/ffabious/healthy-summer/user-service/docs"
 	"github.com/ffabious/healthy-summer/user-service/internal/auth"
+	"github.com/ffabious/healthy-summer/user-service/internal/db"
 	"github.com/ffabious/healthy-summer/user-service/internal/handler"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -22,6 +23,8 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
+
+	db.Connect()
 
 	r := gin.Default()
 

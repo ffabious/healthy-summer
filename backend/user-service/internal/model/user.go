@@ -2,13 +2,18 @@ package model
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type User struct {
-	ID        string `json:"id"`
-	Email     string `json:"email"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
+	ID       uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+	Email    string    `json:"email" gorm:"type:varchar(100);uniqueIndex;not null"`
+	Password string    `json:"-" gorm:"type:varchar(100);not null"`
+	FirstName string   `json:"first_name" gorm:"type:varchar(50);not null"`
+	LastName  string   `json:"last_name" gorm:"type:varchar(50);not null"`
+	CreatedAt time.Time `json:"created_at" gorm:"not null"`
+	UpdatedAt time.Time `json:"updated_at" gorm:"not null"`
 }
 
 type LoginRequest struct {

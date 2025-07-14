@@ -5,10 +5,17 @@ import (
 	"time"
 
 	"github.com/ffabious/healthy-summer/user-service/internal/auth"
+	"github.com/ffabious/healthy-summer/user-service/internal/db"
 	"github.com/ffabious/healthy-summer/user-service/internal/model"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
+
+func HashPassword(password string) (string, error) {
+	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	return string(hashed), err
+}
 
 // @Summary User Login
 // @Description Login a user and return a JWT token
@@ -21,35 +28,31 @@ import (
 func LoginHandler(c *gin.Context) {
 	var req model.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data", "details": err.Error()})
 		return
 	}
 
-	// Simulate user authentication
-	if req.Email != "" && req.Password != "" {
-		userID := uuid.New()
-		token, err := auth.GenerateJWT(userID) // Replace with actual user ID from database
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
-			return
-		}
-
-		resp := model.LoginResponse{
-			Token:     token,
-			TokenType: "Bearer",
-			ExpiresAt: time.Now().Add(24 * time.Hour),
-			User: model.User{
-				ID:        "12345",
-				Email:     req.Email,
-				FirstName: "John",
-				LastName:  "Doe",
-			},
-		}
-
-		c.JSON(http.StatusOK, resp)
-	} else {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+	user, err := db.GetUserByEmail(req.Email)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password", "details": err.Error()})
+		return
 	}
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password", "details": err.Error()})
+		return
+	}
+	token, err := auth.GenerateJWT(user.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token", "details": err.Error()})
+		return
+	}
+	resp := model.LoginResponse{
+		User:      *user,
+		Token:     token,
+		TokenType: "Bearer",
+		ExpiresAt: time.Now().Add(24 * time.Hour),
+	}
+	c.JSON(http.StatusOK, resp)
 }
 
 // @Summary User Registration
@@ -63,36 +66,37 @@ func LoginHandler(c *gin.Context) {
 func RegisterHandler(c *gin.Context) {
 	var req model.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data", "details": err.Error()})
+		return
+	}
+	hashedPassword, err := HashPassword(req.Password)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password", "details": err.Error()})
 		return
 	}
 
-	// Simulate user registration
-	if req.Email != "" && req.Password != "" && req.FirstName != "" && req.LastName != "" {
-		userID := uuid.New()
-		token, err := auth.GenerateJWT(userID)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
-			return
-		}
-
-		resp := model.LoginResponse{
-			Token:     token,
-			TokenType: "Bearer",
-			ExpiresAt: time.Now().Add(24 * time.Hour),
-			User: model.User{
-				ID:        "12345",
-				Email:     req.Email,
-				FirstName: "John",
-				LastName:  "Doe",
-			},
-		}
-
-		c.JSON(http.StatusCreated, resp)
-	} else {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid registration data"})
+	user, err := db.PostRegister(model.RegisterRequest{
+		Email:     req.Email,
+		Password:  hashedPassword,
+		FirstName: req.FirstName,
+		LastName:  req.LastName,
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to register user", "details": err.Error()})
 		return
 	}
+	token, err := auth.GenerateJWT(user.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token", "details": err.Error()})
+		return
+	}
+	resp := model.RegisterResponse{
+		User:      *user,
+		Token:     token,
+		TokenType: "Bearer",
+		ExpiresAt: time.Now().Add(24 * time.Hour),
+	}
+	c.JSON(http.StatusCreated, resp)
 }
 
 // @Summary Get Current User
@@ -103,20 +107,16 @@ func RegisterHandler(c *gin.Context) {
 // @Security BearerAuth
 // @Router /api/users/me [get]
 func GetCurrentUserHandler(c *gin.Context) {
-	// Extract user ID from JWT token
 	userID, err := auth.ExtractUserID(c)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized", "details": err.Error()})
 		return
 	}
 
-	// Simulate fetching user from database
-	user := model.User{
-		ID:        userID,
-		Email:     "john.doe@mail.com",
-		FirstName: "John",
-		LastName:  "Doe",
+	user, err := db.GetUserByID(uuid.MustParse(userID))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found", "details": err.Error()})
+		return
 	}
-
 	c.JSON(http.StatusOK, user)
 }
