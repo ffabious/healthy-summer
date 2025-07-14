@@ -1,3 +1,1 @@
 # Healthy Summer
-
-## Temp
