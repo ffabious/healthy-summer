@@ -7,11 +7,11 @@ import (
 )
 
 type User struct {
-	ID       uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
-	Email    string    `json:"email" gorm:"type:varchar(100);uniqueIndex;not null"`
-	Password string    `json:"-" gorm:"type:varchar(100);not null"`
-	FirstName string   `json:"first_name" gorm:"type:varchar(50);not null"`
-	LastName  string   `json:"last_name" gorm:"type:varchar(50);not null"`
+	ID        uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+	Email     string    `json:"email" gorm:"type:varchar(100);uniqueIndex;not null"`
+	Password  string    `json:"-" gorm:"type:varchar(100);not null"`
+	FirstName string    `json:"first_name" gorm:"type:varchar(50);not null"`
+	LastName  string    `json:"last_name" gorm:"type:varchar(50);not null"`
 	CreatedAt time.Time `json:"created_at" gorm:"not null"`
 	UpdatedAt time.Time `json:"updated_at" gorm:"not null"`
 }
@@ -40,4 +40,41 @@ type RegisterResponse struct {
 	Token     string    `json:"token"`
 	TokenType string    `json:"token_type" example:"Bearer"`
 	ExpiresAt time.Time `json:"expires_at"`
+}
+
+type UpdateProfileRequest struct {
+	FirstName string `json:"first_name" binding:"required"`
+	LastName  string `json:"last_name" binding:"required"`
+}
+
+type Friend struct {
+	ID        uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+	UserID    uuid.UUID `json:"user_id" gorm:"type:uuid;not null"`
+	FriendID  uuid.UUID `json:"friend_id" gorm:"type:uuid;not null"`
+	CreatedAt time.Time `json:"created_at" gorm:"not null"`
+	UpdatedAt time.Time `json:"updated_at" gorm:"not null"`
+}
+
+type FriendRequest struct {
+	ID         uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+	SenderID   uuid.UUID `json:"sender_id" gorm:"type:uuid;not null"`
+	ReceiverID uuid.UUID `json:"receiver_id" gorm:"type:uuid;not null"`
+	Status     string    `json:"status" gorm:"type:varchar(20);not null;default:'pending'" example:"pending"`
+	CreatedAt  time.Time `json:"created_at" gorm:"not null"`
+	UpdatedAt  time.Time `json:"updated_at" gorm:"not null"`
+}
+
+type Achievement struct {
+	ID        uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+	UserID    uuid.UUID `json:"user_id" gorm:"type:uuid;not null"`
+	Name      string    `json:"name" gorm:"type:varchar(100);not null"`
+	Details   string    `json:"details" gorm:"type:varchar(255);not null"`
+	CreatedAt time.Time `json:"created_at" gorm:"not null"`
+	UpdatedAt time.Time `json:"updated_at" gorm:"not null"`
+}
+
+type AchievementRequest struct {
+	UserID  uuid.UUID `json:"user_id" binding:"required"`
+	Name    string    `json:"name" binding:"required"`
+	Details string    `json:"details" binding:"required"`
 }

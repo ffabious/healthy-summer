@@ -120,3 +120,154 @@ func GetCurrentUserHandler(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, user)
 }
+
+// @Summary Get User Profile
+// @Description Get the profile of the currently authenticated user
+// @Tags user
+// @Produce json
+// @Success 200 {object} model.User
+// @Security BearerAuth
+// @Router /api/users/profile [get]
+func GetProfileHandler(c *gin.Context) {
+	userID, err := auth.ExtractUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized", "details": err.Error()})
+		return
+	}
+
+	user, err := db.GetUserByID(uuid.MustParse(userID))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found", "details": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, user)
+}
+
+// @Summary Update User Profile
+// @Description Update the profile of the currently authenticated user
+// @Tags user
+// @Accept json
+// @Produce json
+// @Param updateProfileRequest body model.UpdateProfileRequest true "Update Profile Request"
+// @Success 200 {object} model.User
+// @Security BearerAuth
+// @Router /api/users/profile [put]
+func UpdateProfileHandler(c *gin.Context) {
+	userID, err := auth.ExtractUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized", "details": err.Error()})
+		return
+	}
+
+	var req model.UpdateProfileRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data", "details": err.Error()})
+		return
+	}
+
+	user, err := db.UpdateUserProfile(uuid.MustParse(userID), req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile", "details": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, user)
+}
+
+// @Summary Get Friends
+// @Description Get the friends of the currently authenticated user
+// @Tags friends
+// @Produce json
+// @Success 200 {array} model.Friend
+// @Security BearerAuth
+// @Router /api/users/friends [get]
+func GetFriendsHandler(c *gin.Context) {
+	userID, err := auth.ExtractUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized", "details": err.Error()})
+		return
+	}
+
+	friends, err := db.GetFriendsByUserID(uuid.MustParse(userID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve friends", "details": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, friends)
+}
+
+// @Summary Send Friend Request
+// @Description Send a friend request to another user
+// @Tags friends
+// @Accept json
+// @Produce json
+// @Param friendRequest body model.FriendRequest true "Friend Request"
+// @Success 201 {object} model.FriendRequest
+// @Security BearerAuth
+// @Router /api/users/friends/request [post]
+func SendFriendRequestHandler(c *gin.Context) {
+	userID, err := auth.ExtractUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized", "details": err.Error()})
+		return
+	}
+
+	var req model.FriendRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data", "details": err.Error()})
+		return
+	}
+
+	if req.ReceiverID.String() == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Target user ID is required"})
+		return
+	}
+
+	friendRequest, err := db.SendFriendRequest(uuid.MustParse(userID), req.ReceiverID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send friend request", "details": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, friendRequest)
+}
+
+// @Summary Add Achievement
+// @Description Add an achievement for the currently authenticated user
+// @Tags achievements
+// @Accept json
+// @Produce json
+// @Param achievementRequest body model.AchievementRequest true "Achievement Request"
+// @Success 201 {object} model.Achievement
+// @Security BearerAuth
+// @Router /api/users/achievements [post]
+func AddAchievementHandler(c *gin.Context) {
+	userID, err := auth.ExtractUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized", "details": err.Error()})
+		return
+	}
+
+	var req model.AchievementRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data", "details": err.Error()})
+		return
+	}
+
+	if req.Name == "" || req.Details == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Achievement name and details are required"})
+		return
+	}
+
+	achievement := model.Achievement{
+		UserID:    uuid.MustParse(userID),
+		Name:      req.Name,
+		Details:   req.Details,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+	achieved, err := db.AddAchievement(uuid.MustParse(userID), achievement)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add achievement", "details": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, achieved)
+}

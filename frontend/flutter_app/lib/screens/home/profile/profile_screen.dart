@@ -98,10 +98,7 @@ class ProfileBody extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 20),
-          Text(
-            'Username: $_username',
-            style: Theme.of(context).textTheme.headlineLarge,
-          ),
+          Text(_username, style: Theme.of(context).textTheme.headlineLarge),
           Text('Email: $_email', style: Theme.of(context).textTheme.bodyMedium),
           const SizedBox(height: 20),
           SizedBox(

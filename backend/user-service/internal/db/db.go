@@ -101,3 +101,52 @@ func GetUserByEmail(email string) (*model.User, error) {
 	}
 	return &user, nil
 }
+
+func UpdateUserProfile(userID uuid.UUID, request model.UpdateProfileRequest) (*model.User, error) {
+	user := model.User{
+		ID:        userID,
+		FirstName: request.FirstName,
+		LastName:  request.LastName,
+		UpdatedAt: time.Now(),
+	}
+
+	if err := DB.Model(&user).Where("id = ?", userID).Updates(user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func GetFriendsByUserID(userID uuid.UUID) ([]model.Friend, error) {
+	var friends []model.Friend
+	if err := DB.Where("user_id = ?", userID).Find(&friends).Error; err != nil {
+		return nil, err
+	}
+	return friends, nil
+}
+
+func SendFriendRequest(senderID, receiverID uuid.UUID) (*model.FriendRequest, error) {
+	friendRequest := model.FriendRequest{
+		ID:         uuid.New(),
+		SenderID:   senderID,
+		ReceiverID: receiverID,
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
+	}
+
+	if err := DB.Create(&friendRequest).Error; err != nil {
+		return nil, err
+	}
+	return &friendRequest, nil
+}
+
+func AddAchievement(userID uuid.UUID, achievement model.Achievement) (*model.Achievement, error) {
+	achievement.ID = uuid.New()
+	achievement.UserID = userID
+	achievement.CreatedAt = time.Now()
+	achievement.UpdatedAt = time.Now()
+
+	if err := DB.Create(&achievement).Error; err != nil {
+		return nil, err
+	}
+	return &achievement, nil
+}
