@@ -67,7 +67,6 @@ type ActivityAnalyticsByType struct {
 
 // @name PostActivityRequest
 type PostActivityRequest struct {
-	UserID      uuid.UUID `json:"user_id" binding:"required"`
 	Type        string    `json:"type" binding:"required"`
 	DurationMin int       `json:"duration_min" binding:"required"`
 	Intensity   Intensity `json:"intensity" binding:"required"`

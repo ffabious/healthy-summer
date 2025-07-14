@@ -42,7 +42,7 @@ func main() {
 	protected.Use(auth.JWTMiddleware())
 
 	protected.POST("", handler.PostActivityHandler)
-	protected.GET("/:user_id", handler.GetActivitiesHandler)
+	protected.GET("", handler.GetActivitiesHandler)
 	protected.GET("/stats/:user_id", handler.GetActivityStatsHandler)
 	protected.POST("/steps", handler.PostStepEntryHandler)
 	protected.GET("/analytics/:user_id", handler.GetActivityAnalyticsHandler)

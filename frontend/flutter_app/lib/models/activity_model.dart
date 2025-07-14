@@ -1,5 +1,4 @@
 class PostActivityRequestModel {
-  final String userId;
   final String type;
   final int durationMin;
   final String intensity;
@@ -8,7 +7,6 @@ class PostActivityRequestModel {
   final DateTime timestamp;
 
   PostActivityRequestModel({
-    required this.userId,
     required this.type,
     required this.durationMin,
     required this.intensity,
@@ -19,7 +17,6 @@ class PostActivityRequestModel {
 
   factory PostActivityRequestModel.fromJson(Map<String, dynamic> json) {
     return PostActivityRequestModel(
-      userId: json['user_id'],
       type: json['type'],
       durationMin: json['duration_min'].toDouble(),
       intensity: json['intensity'],
@@ -31,7 +28,6 @@ class PostActivityRequestModel {
 
   Map<String, dynamic> toJson() {
     return {
-      'user_id': userId,
       'type': type,
       'duration_min': durationMin,
       'intensity': intensity,

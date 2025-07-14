@@ -57,7 +57,6 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
       }
 
       final data = PostActivityRequestModel(
-        userId: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
         type: _selectedType!,
         durationMin: _durationMin!,
         intensity: _intensity!.toLowerCase(),

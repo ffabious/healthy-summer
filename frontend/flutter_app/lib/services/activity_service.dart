@@ -51,7 +51,7 @@ class ActivityService {
   Future<GetActivitiesResponseModel> getActivities(String userId) async {
     try {
       final response = await _dio.get(
-        '$getActivitiesEndpoint/$userId',
+        getActivitiesEndpoint,
         options: Options(
           headers: {
             'Content-Type': 'application/json',

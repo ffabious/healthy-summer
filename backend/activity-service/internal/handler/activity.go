@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/ffabious/healthy-summer/activity-service/internal/auth"
 	"github.com/ffabious/healthy-summer/activity-service/internal/db"
 	"github.com/ffabious/healthy-summer/activity-service/internal/model"
 	"github.com/gin-gonic/gin"
@@ -18,21 +19,21 @@ import (
 // @Param activity body model.PostActivityRequest true "Activity data"
 // @Success 201 {object} model.Activity
 // @Router /api/activities [post]
+// @Security BearerAuth
 func PostActivityHandler(c *gin.Context) {
+	user_id, err := auth.ExtractUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized", "details": err.Error()})
+		return
+	}
 	var req model.PostActivityRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data", "details": err.Error()})
 		return
 	}
-
-	if !req.Intensity.IsValid() {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid intensity value"})
-		return
-	}
-
 	activity := model.Activity{
 		ID:          uuid.New(),
-		UserID:      req.UserID,
+		UserID:      uuid.MustParse(user_id),
 		Type:        req.Type,
 		DurationMin: req.DurationMin,
 		Intensity:   req.Intensity,
@@ -42,10 +43,9 @@ func PostActivityHandler(c *gin.Context) {
 	}
 
 	if err := db.CreateActivity(&activity); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create activity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create activity", "details": err.Error()})
 		return
 	}
-
 	c.JSON(http.StatusCreated, activity)
 }
 
@@ -53,18 +53,23 @@ func PostActivityHandler(c *gin.Context) {
 // @Description Get all activities for a user
 // @Tags activities
 // @Produce json
-// @Param user_id path string true "User ID"
 // @Success 200 {array} model.Activity
-// @Router /api/activities/{user_id} [get]
+// @Router /api/activities [get]
+// @Security BearerAuth
 func GetActivitiesHandler(c *gin.Context) {
-	user_id := c.Param("user_id")
-	activity, err := db.GetActivitiesByUserID(user_id)
+	user_id, err := auth.ExtractUserID(c)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Activity not found"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized", "details": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, activity)
+	activities, err := db.GetActivitiesByUserID(user_id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Activities not found", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, activities)
 }
 
 // @Summary Get Activity Stats
