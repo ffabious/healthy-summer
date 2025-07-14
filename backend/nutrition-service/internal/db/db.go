@@ -51,6 +51,10 @@ func Connect() {
 		log.Fatalf("Failed to create extension uuid-ossp: %v", err)
 	}
 
+	if err := DB.AutoMigrate(&model.Meal{}, &model.Water{}); err != nil {
+		log.Fatalf("Failed to migrate database models: %v", err)
+	}
+
 	log.Println("Database models migrated successfully")
 	log.Println("Database connection and migration completed successfully")
 	log.Println("Database connection string:", dsn)

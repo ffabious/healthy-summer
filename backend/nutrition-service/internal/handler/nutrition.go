@@ -22,7 +22,7 @@ import (
 func PostMealHandler(c *gin.Context) {
 	var req model.PostMealRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data", "details": err.Error()})
 		return
 	}
 
@@ -38,7 +38,7 @@ func PostMealHandler(c *gin.Context) {
 	}
 
 	if err := db.CreateMeal(&meal); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create meal"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create meal", "details": err.Error()})
 		return
 	}
 
