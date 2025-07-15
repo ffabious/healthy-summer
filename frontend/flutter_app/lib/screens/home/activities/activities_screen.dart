@@ -330,7 +330,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
                     : AnimatedStepCounterArc(steps: _currentSteps, goal: 10000),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 8),
             // Debug buttons row
             Row(
               children: [

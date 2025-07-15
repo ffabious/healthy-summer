@@ -25,11 +25,54 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
   String? _intensity;
   int? _calories;
   final _locationController = TextEditingController();
+  final _caloriesController = TextEditingController();
 
   @override
   void dispose() {
     _locationController.dispose();
+    _caloriesController.dispose();
     super.dispose();
+  }
+
+  int _calculateCalories(
+    String activityType,
+    String intensity,
+    int durationMin,
+  ) {
+    // Base calories per minute for different activities (for average 70kg person)
+    Map<String, double> activityCaloriesPerMin = {
+      'Running': 12.0,
+      'Cycling': 8.0,
+      'Swimming': 11.0,
+      'Walking': 4.0,
+      'Other': 6.0,
+    };
+
+    // Intensity multipliers
+    Map<String, double> intensityMultipliers = {
+      'Low': 0.7,
+      'Medium': 1.0,
+      'High': 1.4,
+    };
+
+    double baseCaloriesPerMin = activityCaloriesPerMin[activityType] ?? 6.0;
+    double intensityMultiplier = intensityMultipliers[intensity] ?? 1.0;
+
+    return (baseCaloriesPerMin * intensityMultiplier * durationMin).round();
+  }
+
+  void _updateCaloriesEstimate() {
+    if (_selectedType != null && _intensity != null && _durationMin != null) {
+      final estimatedCalories = _calculateCalories(
+        _selectedType!,
+        _intensity!,
+        _durationMin!,
+      );
+      setState(() {
+        _calories = estimatedCalories;
+        _caloriesController.text = estimatedCalories.toString();
+      });
+    }
   }
 
   void _submit() {
@@ -64,7 +107,7 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
         location: _locationController.text.isEmpty
             ? null
             : _locationController.text,
-        timestamp: DateTime.now(),
+        timestamp: DateTime.now().toUtc(),
       );
 
       debugPrint('Posting activity: ${data.toJson()}');
@@ -97,6 +140,56 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
           key: _formKey,
           child: ListView(
             children: [
+              Card(
+                color: Colors.blue.shade50,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            color: Colors.blue.shade700,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Calorie Calculation Formula',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Calories = Base Rate × Intensity × Duration',
+                        style: TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Base rates (cal/min): Running: 12, Cycling: 8, Swimming: 11, Walking: 4, Other: 6',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      const Text(
+                        'Intensity: Low: 0.7×, Medium: 1.0×, High: 1.4×',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      const Text(
+                        '* Based on average 70kg person. You can edit the calculated value.',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 decoration: const InputDecoration(labelText: 'Activity Type'),
                 items: _activityTypes
@@ -106,7 +199,10 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
                     )
                     .toList(),
                 value: _selectedType,
-                onChanged: (value) => setState(() => _selectedType = value),
+                onChanged: (value) {
+                  setState(() => _selectedType = value);
+                  _updateCaloriesEstimate();
+                },
                 validator: (value) =>
                     value == null ? 'Please select activity type' : null,
               ),
@@ -122,6 +218,13 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
                   if (n == null || n <= 0) return 'Enter valid duration';
                   return null;
                 },
+                onChanged: (value) {
+                  final duration = int.tryParse(value);
+                  if (duration != null && duration > 0) {
+                    _durationMin = duration;
+                    _updateCaloriesEstimate();
+                  }
+                },
                 onSaved: (value) => _durationMin = int.parse(value!),
               ),
               const SizedBox(height: 16),
@@ -134,21 +237,31 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
                     )
                     .toList(),
                 value: _intensity,
-                onChanged: (value) => setState(() => _intensity = value),
+                onChanged: (value) {
+                  setState(() => _intensity = value);
+                  _updateCaloriesEstimate();
+                },
                 validator: (value) =>
                     value == null ? 'Please select intensity' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
+                controller: _caloriesController,
                 decoration: const InputDecoration(
                   labelText: 'Calories Burned',
-                  hintText: 'e.g. 250',
+                  hintText: 'Auto-calculated (editable)',
                 ),
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   final n = int.tryParse(value ?? '');
                   if (n == null || n < 0) return 'Enter valid calories';
                   return null;
+                },
+                onChanged: (value) {
+                  final calories = int.tryParse(value);
+                  if (calories != null && calories >= 0) {
+                    _calories = calories;
+                  }
                 },
                 onSaved: (value) => _calories = int.parse(value!),
               ),
