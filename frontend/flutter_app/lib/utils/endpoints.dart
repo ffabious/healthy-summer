@@ -10,6 +10,9 @@ var registerEndpoint = '$userUrl/register';
 var userEndpoint = '$userUrl/me';
 var friendsEndpoint = '$userUrl/friends';
 var sendFriendRequestEndpoint = '$userUrl/friends/request';
+var getPendingFriendRequestsEndpoint = '$userUrl/friends/requests';
+var respondToFriendRequestEndpoint = '$userUrl/friends/respond';
+var searchUsersEndpoint = '$userUrl/search';
 var achievementsEndpoint = '$userUrl/achievements';
 var profileEndpoint = '$userUrl/profile';
 

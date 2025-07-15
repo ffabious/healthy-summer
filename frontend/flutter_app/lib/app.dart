@@ -3,6 +3,7 @@ import 'package:flutter_app/screens/home/home.dart';
 import 'package:flutter_app/screens/auth/splash_screen.dart';
 import 'package:flutter_app/screens/home/nutrition/all_meals_screen.dart';
 import 'package:flutter_app/screens/home/nutrition/all_water_entries_screen.dart';
+import 'package:flutter_app/screens/home/social/friend_requests_screen.dart';
 import 'screens/auth/auth.dart';
 
 class App extends StatelessWidget {
@@ -34,6 +35,7 @@ class App extends StatelessWidget {
         '/all-water-entries': (context) => const AllWaterEntriesScreen(),
         '/friend-list': (context) => const FriendListScreen(),
         '/find-friends': (context) => const FindFriendsScreen(),
+        '/friend-requests': (context) => const FriendRequestsScreen(),
         '/social-feed': (context) => const SocialFeedScreen(),
         '/challenges': (context) => ChallengesScreen(),
         '/chat': (context) {

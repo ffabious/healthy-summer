@@ -10,6 +10,7 @@ export 'profile/edit_profile_screen.dart';
 export 'nutrition/add_water_intake_screen.dart';
 export 'social/friend_list_screen.dart';
 export 'social/find_friends_screen.dart';
+export 'social/friend_requests_screen.dart';
 export 'social/social_feed_screen.dart';
 export 'social/challenges_screen.dart';
 export 'social/community_challenges_list_screen.dart';
