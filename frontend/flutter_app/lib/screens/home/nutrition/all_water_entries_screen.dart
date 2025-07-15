@@ -41,12 +41,16 @@ class _AllWaterEntriesScreenState extends State<AllWaterEntriesScreen> {
     }
   }
 
-  Future<void> _deleteWaterEntry(PostWaterIntakeResponseModel waterEntry) async {
+  Future<void> _deleteWaterEntry(
+    PostWaterIntakeResponseModel waterEntry,
+  ) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Water Entry'),
-        content: Text('Are you sure you want to delete this ${waterEntry.volumeMl}ml water entry?'),
+        content: Text(
+          'Are you sure you want to delete this ${waterEntry.volumeMl}ml water entry?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -67,7 +71,9 @@ class _AllWaterEntriesScreenState extends State<AllWaterEntriesScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Water entry (${waterEntry.volumeMl}ml) deleted successfully'),
+              content: Text(
+                'Water entry (${waterEntry.volumeMl}ml) deleted successfully',
+              ),
               backgroundColor: Colors.green,
             ),
           );
@@ -88,7 +94,9 @@ class _AllWaterEntriesScreenState extends State<AllWaterEntriesScreen> {
 
   Future<void> _editWaterEntry(PostWaterIntakeResponseModel waterEntry) async {
     final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (context) => EditWaterEntryScreen(waterEntry: waterEntry)),
+      MaterialPageRoute(
+        builder: (context) => EditWaterEntryScreen(waterEntry: waterEntry),
+      ),
     );
 
     if (result == true) {
@@ -102,10 +110,16 @@ class _AllWaterEntriesScreenState extends State<AllWaterEntriesScreen> {
       appBar: AppBar(
         title: const Text('All Water Entries'),
         actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadAllWaterEntries),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _loadAllWaterEntries,
+          ),
         ],
       ),
-      body: RefreshIndicator(onRefresh: _loadAllWaterEntries, child: _buildBody()),
+      body: RefreshIndicator(
+        onRefresh: _loadAllWaterEntries,
+        child: _buildBody(),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.pushNamed(
@@ -318,8 +332,11 @@ class _EditWaterEntryScreenState extends State<EditWaterEntryScreen> {
         amount: int.parse(_volumeController.text),
       );
 
-      await _nutritionService.updateWaterEntry(widget.waterEntry.id, updatedWaterEntry);
-      
+      await _nutritionService.updateWaterEntry(
+        widget.waterEntry.id,
+        updatedWaterEntry,
+      );
+
       // Record water intake for notification tracking since user is updating their intake
       await _notificationService.recordWaterIntake();
 

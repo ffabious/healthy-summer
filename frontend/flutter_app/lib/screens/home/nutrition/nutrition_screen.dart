@@ -273,7 +273,10 @@ class _NutritionScreenState extends State<NutritionScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.notifications_active, color: Colors.purple),
+              leading: const Icon(
+                Icons.notifications_active,
+                color: Colors.purple,
+              ),
               title: const Text('Water Reminder Settings'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {

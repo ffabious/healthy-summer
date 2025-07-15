@@ -36,7 +36,7 @@ class AddWaterIntakeScreenState extends State<AddWaterIntakeScreen> {
         final waterIntake = PostWaterIntakeRequestModel(amount: amount);
 
         await _nutritionService.postWaterIntake(waterIntake);
-        
+
         // Record water intake for notification tracking
         await _notificationService.recordWaterIntake();
 
