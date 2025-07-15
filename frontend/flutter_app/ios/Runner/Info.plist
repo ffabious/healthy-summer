@@ -48,6 +48,6 @@
 	<key>NSUserDefaultsSuiteName</key>
 	<string>FlutterSharedPreferences</string>
 	<key>NSMotionUsageDescription</key>
-	<string>This application tracks your steps</string>
+	<string>This application uses motion sensors to track your steps</string>
 </dict>
 </plist>

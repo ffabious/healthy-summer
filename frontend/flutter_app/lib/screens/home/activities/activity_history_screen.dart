@@ -499,9 +499,7 @@ class _ActivityHistoryScreenState extends ConsumerState<ActivityHistoryScreen> {
 
   Future<GetActivitiesResponseModel> _fetchAllActivities() async {
     try {
-      final response = await ActivityService().getActivities(
-        'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
-      );
+      final response = await ActivityService().getActivities();
       return GetActivitiesResponseModel.fromJson(response.toJson());
     } catch (e) {
       throw Exception('Failed to load activities: $e');

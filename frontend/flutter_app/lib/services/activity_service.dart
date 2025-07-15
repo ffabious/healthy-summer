@@ -48,7 +48,7 @@ class ActivityService {
     }
   }
 
-  Future<GetActivitiesResponseModel> getActivities(String userId) async {
+  Future<GetActivitiesResponseModel> getActivities() async {
     try {
       final response = await _dio.get(
         getActivitiesEndpoint,
