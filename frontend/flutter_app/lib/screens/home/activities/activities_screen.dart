@@ -32,11 +32,14 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
   @override
   void initState() {
     super.initState();
+    debugPrint('🚀 ActivitiesScreen initializing...');
     _fetchSteps();
     _startStepTimer();
     _fetchRecentActivities();
+    debugPrint('🔍 Checking for previous day step submission...');
     _checkAndSubmitPreviousDaySteps();
     _setupMidnightTimer();
+    debugPrint('✅ ActivitiesScreen initialization complete');
   }
 
   @override
@@ -98,11 +101,11 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
       final today = DateTime(now.year, now.month, now.day);
 
       if (lastSubmissionDateStr == null) {
-        // First time opening the app, just set today as last submission
-        await _secureStorage.write(
-          key: _lastSubmissionDateKey,
-          value: today.toIso8601String(),
+        // First time opening the app or after reset - submit yesterday's steps
+        debugPrint(
+          '🔄 No previous submission found. Submitting yesterday\'s steps...',
         );
+        await _submitPreviousDaySteps();
         return;
       }
 
@@ -115,7 +118,12 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
 
       // Check if we missed any days
       if (today.isAfter(lastSubmissionDay)) {
+        debugPrint(
+          '🔄 Missed day(s) detected. Last submission: ${lastSubmissionDay.day}/${lastSubmissionDay.month}/${lastSubmissionDay.year}',
+        );
         await _submitPreviousDaySteps();
+      } else {
+        debugPrint('✅ Already submitted steps for previous day.');
       }
     } catch (e) {
       debugPrint('Error checking previous day steps: $e');
@@ -144,6 +152,8 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
       debugPrint(
         '  Date: ${yesterday.day}/${yesterday.month}/${yesterday.year}',
       );
+      debugPrint('  Start time: ${startOfYesterday.toIso8601String()}');
+      debugPrint('  End time: ${endOfYesterday.toIso8601String()}');
 
       // Get step count for previous day
       final yesterdaySteps = await Pedometer().getStepCount(
@@ -160,11 +170,13 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
       );
 
       debugPrint('  Submitting to API...');
+      debugPrint('  Request JSON: ${stepEntry.toJson()}');
 
       // Submit to API
       final response = await ActivityService().createStepEntry(stepEntry);
 
       debugPrint('  ✅ Success! Response ID: ${response.id}');
+      debugPrint('  Response data: ${response.toJson()}');
 
       // Update last submission date
       final today = DateTime(now.year, now.month, now.day);
@@ -174,10 +186,14 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
       );
 
       debugPrint(
+        '  Updated last submission date to: ${today.toIso8601String()}',
+      );
+      debugPrint(
         'Successfully submitted $yesterdaySteps steps for ${yesterday.day}/${yesterday.month}/${yesterday.year}',
       );
     } catch (e) {
       debugPrint('❌ Error submitting previous day steps: $e');
+      debugPrint('❌ Error details: ${e.toString()}');
       // Don't update last submission date if failed, so we can retry later
     }
   }
@@ -258,19 +274,27 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
 
   Future<void> _resetSubmissionDate() async {
     try {
-      await _secureStorage.delete(key: _lastSubmissionDateKey);
-      debugPrint(
-        '🔄 Submission date reset! Next app restart will trigger step submission.',
+      // Check if there was a previous submission date
+      final existingDate = await _secureStorage.read(
+        key: _lastSubmissionDateKey,
       );
+
+      await _secureStorage.delete(key: _lastSubmissionDateKey);
+
+      debugPrint('🔄 Submission date reset!');
+      debugPrint('  Previous date: ${existingDate ?? "None"}');
+      debugPrint('  Next app restart will trigger step submission.');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              '🔄 Submission date reset! Restart app to test auto-submission.',
+              existingDate != null
+                  ? '🔄 Reset complete! Had: ${DateTime.parse(existingDate).day}/${DateTime.parse(existingDate).month}. Restart to test.'
+                  : '🔄 Reset complete! No previous date found. Restart to test.',
             ),
             backgroundColor: Colors.blue,
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 4),
           ),
         );
       }
