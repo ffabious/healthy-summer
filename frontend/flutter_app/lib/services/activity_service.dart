@@ -69,4 +69,29 @@ class ActivityService {
       }
     }
   }
+
+  Future<PostStepEntryResponseModel> createStepEntry(
+    PostStepEntryRequestModel stepEntry,
+  ) async {
+    try {
+      final response = await _dio.post(
+        postStepEntryEndpoint,
+        data: stepEntry.toJson(),
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': 'Bearer ${await SecureStorage.getToken()}',
+          },
+        ),
+      );
+      return PostStepEntryResponseModel.fromJson(response.data);
+    } on DioException catch (e) {
+      if (e.response != null) {
+        throw Exception('Failed to create step entry: ${e.response?.data}');
+      } else {
+        throw Exception('Failed to create step entry: ${e.message}');
+      }
+    }
+  }
 }

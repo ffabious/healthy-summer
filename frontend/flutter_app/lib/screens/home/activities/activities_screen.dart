@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_app/widgets/widgets.dart';
 import 'package:flutter_app/services/activity_service.dart';
 import 'package:flutter_app/models/models.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:pedometer_2/pedometer_2.dart';
 
 class ActivitiesScreen extends ConsumerStatefulWidget {
@@ -15,6 +16,7 @@ class ActivitiesScreen extends ConsumerStatefulWidget {
 
 class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
   Timer? _stepTimer;
+  Timer? _midnightTimer;
   int _currentSteps = 0;
   bool _isLoadingSteps = true;
 
@@ -23,17 +25,24 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
   bool _isLoadingActivities = true;
   bool _hasActivitiesError = false;
 
+  // Daily step submission
+  static const String _lastSubmissionDateKey = 'last_step_submission_date';
+  static const _secureStorage = FlutterSecureStorage();
+
   @override
   void initState() {
     super.initState();
     _fetchSteps();
     _startStepTimer();
     _fetchRecentActivities();
+    _checkAndSubmitPreviousDaySteps();
+    _setupMidnightTimer();
   }
 
   @override
   void dispose() {
     _stepTimer?.cancel();
+    _midnightTimer?.cancel();
     super.dispose();
   }
 
@@ -69,6 +78,215 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
     }
   }
 
+  void _setupMidnightTimer() {
+    final now = DateTime.now();
+    final tomorrow = DateTime(now.year, now.month, now.day + 1);
+    final timeUntilMidnight = tomorrow.difference(now);
+
+    _midnightTimer = Timer(timeUntilMidnight, () {
+      _submitPreviousDaySteps();
+      _setupMidnightTimer(); // Setup for next day
+    });
+  }
+
+  Future<void> _checkAndSubmitPreviousDaySteps() async {
+    try {
+      final lastSubmissionDateStr = await _secureStorage.read(
+        key: _lastSubmissionDateKey,
+      );
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+
+      if (lastSubmissionDateStr == null) {
+        // First time opening the app, just set today as last submission
+        await _secureStorage.write(
+          key: _lastSubmissionDateKey,
+          value: today.toIso8601String(),
+        );
+        return;
+      }
+
+      final lastSubmissionDate = DateTime.parse(lastSubmissionDateStr);
+      final lastSubmissionDay = DateTime(
+        lastSubmissionDate.year,
+        lastSubmissionDate.month,
+        lastSubmissionDate.day,
+      );
+
+      // Check if we missed any days
+      if (today.isAfter(lastSubmissionDay)) {
+        await _submitPreviousDaySteps();
+      }
+    } catch (e) {
+      debugPrint('Error checking previous day steps: $e');
+    }
+  }
+
+  Future<void> _submitPreviousDaySteps() async {
+    try {
+      final now = DateTime.now();
+      final yesterday = DateTime(now.year, now.month, now.day - 1);
+      final startOfYesterday = DateTime(
+        yesterday.year,
+        yesterday.month,
+        yesterday.day,
+      );
+      final endOfYesterday = DateTime(
+        yesterday.year,
+        yesterday.month,
+        yesterday.day,
+        23,
+        59,
+        59,
+      );
+
+      debugPrint('📤 Auto-submitting previous day steps...');
+      debugPrint(
+        '  Date: ${yesterday.day}/${yesterday.month}/${yesterday.year}',
+      );
+
+      // Get step count for previous day
+      final yesterdaySteps = await Pedometer().getStepCount(
+        from: startOfYesterday,
+        to: endOfYesterday,
+      );
+
+      debugPrint('  Steps count: $yesterdaySteps');
+
+      // Create step entry for previous day
+      final stepEntry = PostStepEntryRequestModel(
+        steps: yesterdaySteps,
+        date: endOfYesterday,
+      );
+
+      debugPrint('  Submitting to API...');
+
+      // Submit to API
+      final response = await ActivityService().createStepEntry(stepEntry);
+
+      debugPrint('  ✅ Success! Response ID: ${response.id}');
+
+      // Update last submission date
+      final today = DateTime(now.year, now.month, now.day);
+      await _secureStorage.write(
+        key: _lastSubmissionDateKey,
+        value: today.toIso8601String(),
+      );
+
+      debugPrint(
+        'Successfully submitted $yesterdaySteps steps for ${yesterday.day}/${yesterday.month}/${yesterday.year}',
+      );
+    } catch (e) {
+      debugPrint('❌ Error submitting previous day steps: $e');
+      // Don't update last submission date if failed, so we can retry later
+    }
+  }
+
+  Future<void> _testSubmitSteps() async {
+    debugPrint('=== TESTING STEP SUBMISSION ===');
+
+    try {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+
+      // Get today's step count for testing
+      debugPrint('Fetching today\'s step count...');
+      final todaySteps = await Pedometer().getStepCount(
+        from: today,
+        to: now, // Up to current time
+      );
+      debugPrint('Today\'s steps so far: $todaySteps');
+
+      // Create test step entry with today's data
+      final stepEntry = PostStepEntryRequestModel(
+        steps: todaySteps,
+        date: now, // Current timestamp for testing
+      );
+
+      debugPrint('Preparing to submit step entry:');
+      debugPrint('  Steps: $todaySteps');
+      debugPrint('  Date: ${stepEntry.date.toIso8601String()}');
+      debugPrint('  JSON: ${stepEntry.toJson()}');
+
+      // Show loading indicator
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Testing step submission...'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+
+      // Submit to API
+      debugPrint('Calling ActivityService.createStepEntry()...');
+      final response = await ActivityService().createStepEntry(stepEntry);
+
+      debugPrint('✅ SUCCESS! Step submission response:');
+      debugPrint('  Response ID: ${response.id}');
+      debugPrint('  User ID: ${response.userId}');
+      debugPrint('  Steps: ${response.steps}');
+      debugPrint('  Date: ${response.date}');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('✅ Success! Submitted $todaySteps steps'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('❌ ERROR during step submission:');
+      debugPrint('  Error type: ${e.runtimeType}');
+      debugPrint('  Error message: $e');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    }
+
+    debugPrint('=== END TEST ===');
+  }
+
+  Future<void> _resetSubmissionDate() async {
+    try {
+      await _secureStorage.delete(key: _lastSubmissionDateKey);
+      debugPrint(
+        '🔄 Submission date reset! Next app restart will trigger step submission.',
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              '🔄 Submission date reset! Restart app to test auto-submission.',
+            ),
+            backgroundColor: Colors.blue,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error resetting submission date: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error resetting: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,6 +307,35 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
               ),
             ),
             const SizedBox(height: 24),
+            // Debug buttons row
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.upload),
+                    label: const Text('Test Submit'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: _testSubmitSteps,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Reset Timer'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: _resetSubmissionDate,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
             // Add Activity Button
             SizedBox(
               width: double.infinity,

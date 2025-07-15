@@ -33,7 +33,7 @@ class PostActivityRequestModel {
       'intensity': intensity,
       'calories': calories,
       'location': location,
-      'timestamp': "${timestamp.toIso8601String()}Z",
+      'timestamp': "${timestamp.toIso8601String()}",
     };
   }
 }
@@ -81,7 +81,7 @@ class PostActivityResponseModel {
       'intensity': intensity,
       'calories': calories,
       'location': location,
-      'timestamp': timestamp.toIso8601String(),
+      'timestamp': timestamp.toUtc().toIso8601String(),
     };
   }
 }
@@ -137,7 +137,7 @@ class ActivityModel {
       'intensity': intensity,
       'calories': calories,
       'location': location,
-      'timestamp': timestamp.toIso8601String(),
+      'timestamp': timestamp.toUtc().toIso8601String(),
     };
   }
 }
@@ -197,5 +197,59 @@ class GetActivitiesResponseModel {
   @override
   String toString() {
     return 'GetActivitiesResponseModel(activities: ${activities.length} items)';
+  }
+}
+
+class PostStepEntryRequestModel {
+  final int steps;
+  final DateTime date;
+
+  PostStepEntryRequestModel({required this.steps, required this.date});
+
+  Map<String, dynamic> toJson() {
+    return {'steps': steps, 'date': date.toUtc().toIso8601String()};
+  }
+
+  factory PostStepEntryRequestModel.fromJson(Map<String, dynamic> json) {
+    return PostStepEntryRequestModel(
+      steps: json['steps'],
+      date: DateTime.parse(json['date'] as String).toLocal(),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {'steps': steps, 'date': date.toUtc().toIso8601String()};
+  }
+}
+
+class PostStepEntryResponseModel {
+  final String id;
+  final String userId;
+  final int steps;
+  final DateTime date;
+
+  PostStepEntryResponseModel({
+    required this.id,
+    required this.userId,
+    required this.steps,
+    required this.date,
+  });
+
+  factory PostStepEntryResponseModel.fromJson(Map<String, dynamic> json) {
+    return PostStepEntryResponseModel(
+      id: json['id'],
+      userId: json['user_id'],
+      steps: json['steps'],
+      date: DateTime.parse(json['date']).toLocal(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'user_id': userId,
+      'steps': steps,
+      'date': date.toUtc().toIso8601String(),
+    };
   }
 }
