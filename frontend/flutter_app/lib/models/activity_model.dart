@@ -33,7 +33,7 @@ class PostActivityRequestModel {
       'intensity': intensity,
       'calories': calories,
       'location': location,
-      'timestamp': "${timestamp.toIso8601String()}",
+      'timestamp': timestamp.toIso8601String(),
     };
   }
 }

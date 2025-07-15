@@ -184,7 +184,7 @@ func SearchFood(query string) ([]model.FoodItem, error) {
 
 func UpdateMeal(mealID, userID string, req *model.PostMealRequest) (*model.Meal, error) {
 	var meal model.Meal
-	
+
 	// First, check if the meal exists and belongs to the user
 	if err := DB.Where("id = ? AND user_id = ?", mealID, userID).First(&meal).Error; err != nil {
 		return nil, fmt.Errorf("meal not found or access denied: %w", err)
@@ -217,7 +217,7 @@ func DeleteMeal(mealID, userID string) error {
 
 func UpdateWaterEntry(waterID, userID string, req *model.PostWaterRequest) (*model.Water, error) {
 	var water model.Water
-	
+
 	// First, check if the water entry exists and belongs to the user
 	if err := DB.Where("id = ? AND user_id = ?", waterID, userID).First(&water).Error; err != nil {
 		return nil, fmt.Errorf("water entry not found or access denied: %w", err)
