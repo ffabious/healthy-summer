@@ -181,3 +181,65 @@ func SearchFood(query string) ([]model.FoodItem, error) {
 	}
 	return foods, nil
 }
+
+func UpdateMeal(mealID, userID string, req *model.PostMealRequest) (*model.Meal, error) {
+	var meal model.Meal
+	
+	// First, check if the meal exists and belongs to the user
+	if err := DB.Where("id = ? AND user_id = ?", mealID, userID).First(&meal).Error; err != nil {
+		return nil, fmt.Errorf("meal not found or access denied: %w", err)
+	}
+
+	// Update the meal fields
+	meal.Name = req.Name
+	meal.Calories = req.Calories
+	meal.Protein = req.Protein
+	meal.Carbohydrates = req.Carbohydrates
+	meal.Fats = req.Fats
+
+	if err := DB.Save(&meal).Error; err != nil {
+		return nil, fmt.Errorf("failed to update meal: %w", err)
+	}
+
+	return &meal, nil
+}
+
+func DeleteMeal(mealID, userID string) error {
+	result := DB.Where("id = ? AND user_id = ?", mealID, userID).Delete(&model.Meal{})
+	if result.Error != nil {
+		return fmt.Errorf("failed to delete meal: %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("meal not found or access denied")
+	}
+	return nil
+}
+
+func UpdateWaterEntry(waterID, userID string, req *model.PostWaterRequest) (*model.Water, error) {
+	var water model.Water
+	
+	// First, check if the water entry exists and belongs to the user
+	if err := DB.Where("id = ? AND user_id = ?", waterID, userID).First(&water).Error; err != nil {
+		return nil, fmt.Errorf("water entry not found or access denied: %w", err)
+	}
+
+	// Update the water entry fields
+	water.VolumeMl = req.VolumeMl
+
+	if err := DB.Save(&water).Error; err != nil {
+		return nil, fmt.Errorf("failed to update water entry: %w", err)
+	}
+
+	return &water, nil
+}
+
+func DeleteWaterEntry(waterID, userID string) error {
+	result := DB.Where("id = ? AND user_id = ?", waterID, userID).Delete(&model.Water{})
+	if result.Error != nil {
+		return fmt.Errorf("failed to delete water entry: %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("water entry not found or access denied")
+	}
+	return nil
+}
