@@ -82,10 +82,38 @@ class AuthService {
     }
   }
 
-  static Future<String?> getStoredToken() async {
-    // Implement your logic to retrieve the stored token
-    // This could be from shared preferences, secure storage, etc.
-    // For now, return null to indicate no token is stored.
-    return null;
+  Future<ProfileModel> getProfile(String token) async {
+    try {
+      final response = await _dio.get(
+        profileEndpoint,
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      debugPrint("Response code: ${response.statusCode}");
+      if (response.statusCode == 200) {
+        return ProfileModel.fromJson(response.data);
+      } else {
+        throw Exception('Failed to fetch profile data');
+      }
+    } catch (e) {
+      debugPrint('Error fetching profile data: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> updateProfile(String token, ProfileModel profile) async {
+    try {
+      final response = await _dio.put(
+        profileEndpoint,
+        data: profile.toJson(),
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      debugPrint("Response code: ${response.statusCode}");
+      if (response.statusCode != 200) {
+        throw Exception('Failed to update profile');
+      }
+    } catch (e) {
+      debugPrint('Error updating profile: $e');
+      rethrow;
+    }
   }
 }

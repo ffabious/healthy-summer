@@ -37,6 +37,7 @@ class App extends StatelessWidget {
           return ChatScreen(friendName: friendName ?? 'Unknown');
         },
         '/messages': (context) => MessagesScreen(),
+        '/edit-profile': (context) => EditProfileScreen(),
       },
     );
   }

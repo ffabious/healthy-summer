@@ -5,6 +5,7 @@ export 'activities/activities_screen.dart';
 export 'home_tabs_screen.dart';
 export 'nutrition/nutrition_screen.dart';
 export 'profile/profile_screen.dart';
+export 'profile/edit_profile_screen.dart';
 export 'nutrition/add_water_intake_screen.dart';
 export 'social/friend_list_screen.dart';
 export 'social/find_friends_screen.dart';

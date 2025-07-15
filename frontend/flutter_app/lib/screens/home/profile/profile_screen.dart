@@ -1,26 +1,60 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/models/models.dart';
 import 'package:flutter_app/providers/auth_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_app/core/secure_storage.dart';
+import 'package:flutter_app/services/auth_service.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  late Future<ProfileModel> _profileFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _profileFuture = _fetchProfileData();
+  }
+
+  Future<ProfileModel> _fetchProfileData() async {
+    final token = await SecureStorage.getToken();
+    return await AuthService().getProfile(token ?? '');
+  }
+
+  void _refreshProfile() {
+    setState(() {
+      _profileFuture = _fetchProfileData();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile', style: TextStyle(fontSize: 24)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _refreshProfile,
+            tooltip: 'Refresh Profile',
+          ),
+        ],
       ),
-      body: FutureBuilder<SharedPreferences>(
-        future: SharedPreferences.getInstance(),
+      body: FutureBuilder<ProfileModel>(
+        future: _profileFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text('Error loading profile data'),
                   const SizedBox(height: 20),
@@ -33,15 +67,18 @@ class ProfileScreen extends StatelessWidget {
                 ],
               ),
             );
+          } else if (snapshot.hasData) {
+            var firstName = snapshot.data!.firstName;
+            var lastName = snapshot.data!.lastName;
+            final String username = '$firstName $lastName';
+            final String email = snapshot.data!.email;
+            return ProfileBody(
+              username: username,
+              email: email,
+              onRefresh: _refreshProfile,
+            );
           } else {
-            final prefs = snapshot.data!;
-            final firstName = prefs.getString('first_name');
-            final lastName = prefs.getString('last_name');
-            final username = firstName != null && lastName != null
-                ? '$firstName $lastName'
-                : 'Guest';
-            final email = prefs.getString('email') ?? 'Not provided';
-            return ProfileBody(username: username, email: email);
+            return const Center(child: Text('No profile data found.'));
           }
         },
       ),
@@ -54,11 +91,13 @@ class ProfileBody extends ConsumerWidget {
     super.key,
     required String username,
     required String email,
+    this.onRefresh,
   }) : _username = username,
        _email = email;
 
   final String _username;
   final String _email;
+  final VoidCallback? onRefresh;
 
   void _logout(WidgetRef ref) async {
     final prefs = await SharedPreferences.getInstance();
@@ -104,7 +143,14 @@ class ProfileBody extends ConsumerWidget {
           SizedBox(
             width: screenWidth * 0.7,
             child: ElevatedButton.icon(
-              onPressed: () {}, // TODO: Implement edit profile functionality
+              onPressed: () async {
+                final result = await Navigator.of(
+                  context,
+                ).pushNamed('/edit-profile');
+                if (result == true && onRefresh != null) {
+                  onRefresh!(); // Refresh the profile data
+                }
+              },
               icon: Icon(Icons.edit, color: Colors.white),
               label: Text(
                 "Edit Profile",
