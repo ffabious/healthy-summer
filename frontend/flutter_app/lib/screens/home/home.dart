@@ -1,5 +1,6 @@
 export 'activities/activity_history_screen.dart';
 export 'activities/add_activity_screen.dart';
+export 'activities/edit_activity_screen.dart';
 export 'nutrition/add_meal_screen.dart';
 export 'activities/activities_screen.dart';
 export 'home_tabs_screen.dart';

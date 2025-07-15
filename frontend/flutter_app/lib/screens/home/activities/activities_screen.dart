@@ -314,7 +314,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Activities'), centerTitle: true),
+      appBar: AppBar(title: const Text('Activities')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -383,8 +383,16 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/activity-history');
+                onPressed: () async {
+                  final result = await Navigator.pushNamed(
+                    context,
+                    '/activity-history',
+                  );
+                  // Refresh activities if user made changes in activity history
+                  if (result == true) {
+                    // Refresh both recent activities and any other data that might have changed
+                    _fetchRecentActivities();
+                  }
                 },
                 child: const Text('View All'),
               ),

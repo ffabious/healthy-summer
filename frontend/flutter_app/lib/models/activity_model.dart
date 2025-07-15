@@ -38,6 +38,42 @@ class PostActivityRequestModel {
   }
 }
 
+class UpdateActivityRequestModel {
+  final String type;
+  final int durationMin;
+  final String intensity;
+  final int calories;
+  final String? location;
+
+  UpdateActivityRequestModel({
+    required this.type,
+    required this.durationMin,
+    required this.intensity,
+    required this.calories,
+    this.location,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'type': type,
+      'duration_min': durationMin,
+      'intensity': intensity,
+      'calories': calories,
+      'location': location,
+    };
+  }
+
+  factory UpdateActivityRequestModel.fromActivity(ActivityModel activity) {
+    return UpdateActivityRequestModel(
+      type: activity.type,
+      durationMin: activity.durationMin,
+      intensity: activity.intensity,
+      calories: activity.calories,
+      location: activity.location,
+    );
+  }
+}
+
 class PostActivityResponseModel {
   final String id;
   final String userId;

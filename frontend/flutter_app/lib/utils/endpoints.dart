@@ -17,6 +17,8 @@ var profileEndpoint = '$userUrl/profile';
 var activityUrl = 'https://$activitySubdomain.$addr/api/activities';
 var postActivityEndpoint = activityUrl;
 var getActivitiesEndpoint = activityUrl;
+var updateActivityEndpoint = activityUrl; // Used with /{id}
+var deleteActivityEndpoint = activityUrl; // Used with /{id}
 var postStepEntryEndpoint = '$activityUrl/steps';
 
 // Nutrition Endpoints

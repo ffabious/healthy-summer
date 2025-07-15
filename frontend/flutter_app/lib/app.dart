@@ -27,6 +27,7 @@ class App extends StatelessWidget {
         '/register': (context) => const RegisterScreen(),
         '/activity-history': (context) => const ActivityHistoryScreen(),
         '/add-activity': (context) => const AddActivityScreen(),
+        '/edit-activity': (context) => const EditActivityScreen(),
         '/add-meal': (context) => const AddMealScreen(),
         '/add-water-intake': (context) => const AddWaterIntakeScreen(),
         '/all-meals': (context) => const AllMealsScreen(),

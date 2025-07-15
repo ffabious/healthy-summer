@@ -94,4 +94,51 @@ class ActivityService {
       }
     }
   }
+
+  Future<ActivityModel> updateActivity(
+    String activityId,
+    UpdateActivityRequestModel activity,
+  ) async {
+    try {
+      final response = await _dio.put(
+        '$updateActivityEndpoint/$activityId',
+        data: activity.toJson(),
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': 'Bearer ${await SecureStorage.getToken()}',
+          },
+        ),
+      );
+      return ActivityModel.fromJson(response.data);
+    } on DioException catch (e) {
+      if (e.response != null) {
+        throw Exception('Failed to update activity: ${e.response?.data}');
+      } else {
+        throw Exception('Failed to update activity: ${e.message}');
+      }
+    }
+  }
+
+  Future<void> deleteActivity(String activityId) async {
+    try {
+      await _dio.delete(
+        '$deleteActivityEndpoint/$activityId',
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': 'Bearer ${await SecureStorage.getToken()}',
+          },
+        ),
+      );
+    } on DioException catch (e) {
+      if (e.response != null) {
+        throw Exception('Failed to delete activity: ${e.response?.data}');
+      } else {
+        throw Exception('Failed to delete activity: ${e.message}');
+      }
+    }
+  }
 }
