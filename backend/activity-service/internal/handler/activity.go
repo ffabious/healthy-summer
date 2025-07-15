@@ -98,22 +98,27 @@ func GetActivityStatsHandler(c *gin.Context) {
 // @Param step_entry body model.PostStepEntryRequest true "Step entry data"
 // @Success 201 {object} model.StepEntry
 // @Router /api/activities/steps [post]
+// @Security BearerAuth
 func PostStepEntryHandler(c *gin.Context) {
-	var req model.PostStepEntryRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
+	user_id, err := auth.ExtractUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized", "details": err.Error()})
 		return
 	}
-
+	var req model.PostStepEntryRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data", "details": err.Error()})
+		return
+	}
 	stepEntry := model.StepEntry{
 		ID:     uuid.New(),
-		UserID: req.UserID,
+		UserID: uuid.MustParse(user_id),
 		Date:   req.Date,
 		Steps:  req.Steps,
 	}
 
 	if err := db.CreateStepEntry(&stepEntry); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create step entry"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create step entry", "details": err.Error()})
 		return
 	}
 

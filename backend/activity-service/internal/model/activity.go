@@ -107,7 +107,6 @@ type GetActivityAnalyticsRequest struct {
 	UserID uuid.UUID `json:"user_id" binding:"required"`
 }
 
-
 type MostCaloriesBurnedDay struct {
 	Date     time.Time `json:"date"`
 	Calories int       `json:"calories"`
@@ -122,9 +121,8 @@ type GetActivityAnalyticsResponse struct {
 
 // @name PostStepEntryRequest
 type PostStepEntryRequest struct {
-	UserID uuid.UUID `json:"user_id" binding:"required"`
-	Date   time.Time `json:"date" binding:"required"`
-	Steps  int       `json:"steps" binding:"required"`
+	Date  time.Time `json:"date" binding:"required"`
+	Steps int       `json:"steps" binding:"required"`
 }
 
 // @name PostStepEntryResponse
