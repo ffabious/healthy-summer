@@ -13,6 +13,7 @@ class AddWaterIntakeScreenState extends State<AddWaterIntakeScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _amountController = TextEditingController();
   final NutritionService _nutritionService = NutritionService();
+  final NotificationService _notificationService = NotificationService();
   bool _isLoading = false;
 
   // Quick add buttons for common water amounts
@@ -35,6 +36,9 @@ class AddWaterIntakeScreenState extends State<AddWaterIntakeScreen> {
         final waterIntake = PostWaterIntakeRequestModel(amount: amount);
 
         await _nutritionService.postWaterIntake(waterIntake);
+        
+        // Record water intake for notification tracking
+        await _notificationService.recordWaterIntake();
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
