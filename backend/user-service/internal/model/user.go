@@ -78,3 +78,39 @@ type AchievementRequest struct {
 	Name    string    `json:"name" binding:"required"`
 	Details string    `json:"details" binding:"required"`
 }
+
+type SendFriendRequestBody struct {
+	ReceiverID uuid.UUID `json:"receiver_id" binding:"required"`
+}
+
+type FriendRequestResponse struct {
+	ID         uuid.UUID `json:"id"`
+	SenderID   uuid.UUID `json:"sender_id"`
+	ReceiverID uuid.UUID `json:"receiver_id"`
+	Status     string    `json:"status"`
+	SenderName string    `json:"sender_name,omitempty"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+}
+
+type AcceptRejectRequestBody struct {
+	RequestID uuid.UUID `json:"request_id" binding:"required"`
+	Action    string    `json:"action" binding:"required,oneof=accept reject"`
+}
+
+type SearchUsersResponse struct {
+	ID        uuid.UUID `json:"id"`
+	Email     string    `json:"email"`
+	FirstName string    `json:"first_name"`
+	LastName  string    `json:"last_name"`
+}
+
+type FriendWithDetails struct {
+	ID        uuid.UUID `json:"id"`
+	UserID    uuid.UUID `json:"user_id"`
+	FriendID  uuid.UUID `json:"friend_id"`
+	FirstName string    `json:"first_name"`
+	LastName  string    `json:"last_name"`
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"created_at"`
+}

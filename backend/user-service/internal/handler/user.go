@@ -200,7 +200,7 @@ func GetFriendsHandler(c *gin.Context) {
 // @Tags friends
 // @Accept json
 // @Produce json
-// @Param friendRequest body model.FriendRequest true "Friend Request"
+// @Param friendRequest body model.SendFriendRequestBody true "Friend Request"
 // @Success 201 {object} model.FriendRequest
 // @Security BearerAuth
 // @Router /api/users/friends/request [post]
@@ -211,14 +211,9 @@ func SendFriendRequestHandler(c *gin.Context) {
 		return
 	}
 
-	var req model.FriendRequest
+	var req model.SendFriendRequestBody
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data", "details": err.Error()})
-		return
-	}
-
-	if req.ReceiverID.String() == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Target user ID is required"})
 		return
 	}
 
@@ -270,4 +265,103 @@ func AddAchievementHandler(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusCreated, achieved)
+}
+
+// @Summary Get Pending Friend Requests
+// @Description Get all pending friend requests received by the authenticated user
+// @Tags friends
+// @Produce json
+// @Success 200 {array} model.FriendRequestResponse
+// @Security BearerAuth
+// @Router /api/users/friends/requests [get]
+func GetPendingFriendRequestsHandler(c *gin.Context) {
+	userID, err := auth.ExtractUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized", "details": err.Error()})
+		return
+	}
+
+	requests, err := db.GetPendingFriendRequests(uuid.MustParse(userID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve friend requests", "details": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, requests)
+}
+
+// @Summary Accept or Reject Friend Request
+// @Description Accept or reject a friend request
+// @Tags friends
+// @Accept json
+// @Produce json
+// @Param request body model.AcceptRejectRequestBody true "Accept/Reject Request"
+// @Success 200 {object} model.FriendRequest
+// @Security BearerAuth
+// @Router /api/users/friends/respond [post]
+func RespondToFriendRequestHandler(c *gin.Context) {
+	userID, err := auth.ExtractUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized", "details": err.Error()})
+		return
+	}
+
+	var req model.AcceptRejectRequestBody
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data", "details": err.Error()})
+		return
+	}
+
+	var request *model.FriendRequest
+	if req.Action == "accept" {
+		request, err = db.AcceptFriendRequest(req.RequestID, uuid.MustParse(userID))
+	} else {
+		request, err = db.RejectFriendRequest(req.RequestID, uuid.MustParse(userID))
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to respond to friend request", "details": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, request)
+}
+
+// @Summary Search Users
+// @Description Search for users by email or name
+// @Tags users
+// @Produce json
+// @Param q query string true "Search query"
+// @Success 200 {array} model.SearchUsersResponse
+// @Security BearerAuth
+// @Router /api/users/search [get]
+func SearchUsersHandler(c *gin.Context) {
+	userID, err := auth.ExtractUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized", "details": err.Error()})
+		return
+	}
+
+	query := c.Query("q")
+	if query == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Search query is required"})
+		return
+	}
+
+	users, err := db.SearchUsers(query, uuid.MustParse(userID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to search users", "details": err.Error()})
+		return
+	}
+
+	// Convert to response format
+	var response []model.SearchUsersResponse
+	for _, user := range users {
+		response = append(response, model.SearchUsersResponse{
+			ID:        user.ID,
+			Email:     user.Email,
+			FirstName: user.FirstName,
+			LastName:  user.LastName,
+		})
+	}
+
+	c.JSON(http.StatusOK, response)
 }

@@ -47,6 +47,9 @@ func main() {
 	protected.PUT("/profile", handler.UpdateProfileHandler)
 	protected.GET("/friends", handler.GetFriendsHandler)
 	protected.POST("/friends/request", handler.SendFriendRequestHandler)
+	protected.GET("/friends/requests", handler.GetPendingFriendRequestsHandler)
+	protected.POST("/friends/respond", handler.RespondToFriendRequestHandler)
+	protected.GET("/search", handler.SearchUsersHandler)
 	protected.POST("/achievements", handler.AddAchievementHandler)
 
 	runRegular(r, port)
