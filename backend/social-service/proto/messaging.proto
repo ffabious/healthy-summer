@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package messaging;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package =
+  "github.com/ffabious/healthy-summer/social-service/proto/messaging";
+
+service MessagingService {
+  // Send a message
+  rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
+  
+  // Stream real-time messages
+  rpc StreamMessages(StreamRequest) returns (stream MessageEvent);
+  
+  // Mark messages as read
+  rpc MarkAsRead(MarkAsReadRequest) returns (MarkAsReadResponse);
+}
+
+message SendMessageRequest {
+  string receiver_id = 1;
+  string content = 2;
+  string message_type = 3; // "text", "image", etc.
+}
+
+message SendMessageResponse {
+  Message message = 1;
+  bool success = 2;
+  string error = 3;
+}
+
+message StreamRequest {
+  string user_id = 1;
+}
+
+message MessageEvent {
+  string event_type = 1; // "new_message", "message_read", etc.
+  Message message = 2;
+}
+
+message MarkAsReadRequest {
+  repeated string message_ids = 1;
+}
+
+message MarkAsReadResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+message Message {
+  string id = 1;
+  string sender_id = 2;
+  string receiver_id = 3;
+  string content = 4;
+  string message_type = 5;
+  bool is_read = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
