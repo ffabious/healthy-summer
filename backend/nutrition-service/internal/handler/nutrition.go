@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/ffabious/healthy-summer/nutrition-service/internal/auth"
 	"github.com/ffabious/healthy-summer/nutrition-service/internal/db"
 	"github.com/ffabious/healthy-summer/nutrition-service/internal/model"
 	"github.com/gin-gonic/gin"
@@ -20,6 +21,11 @@ import (
 // @Router /api/meals [post]
 // @Security BearerAuth
 func PostMealHandler(c *gin.Context) {
+	user_id, err := auth.ExtractUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized", "details": err.Error()})
+		return
+	}
 	var req model.PostMealRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data", "details": err.Error()})
@@ -28,7 +34,7 @@ func PostMealHandler(c *gin.Context) {
 
 	meal := model.Meal{
 		ID:            uuid.New(),
-		UserID:        req.UserID,
+		UserID:        uuid.MustParse(user_id),
 		Name:          req.Name,
 		Calories:      req.Calories,
 		Protein:       req.Protein,
@@ -46,23 +52,22 @@ func PostMealHandler(c *gin.Context) {
 }
 
 // @Summary Get meals for a user
-// @Description Retrieve all meals for a specific user
+// @Description Retrieve all meals for a user
 // @Tags Nutrition
 // @Produce json
-// @Param user_id path string true "User ID"
 // @Success 200 {array} model.Meal
-// @Router /api/meals/{user_id} [get]
+// @Router /api/meals [get]
 // @Security BearerAuth
 func GetMealsHandler(c *gin.Context) {
-	userID := c.Param("user_id")
-	if userID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "User ID is required"})
+	user_id, err := auth.ExtractUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized", "details": err.Error()})
 		return
 	}
 
-	meals, err := db.GetMealsByUserID(userID)
+	meals, err := db.GetMealsByUserID(user_id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve meals"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve meals", "details": err.Error()})
 		return
 	}
 
@@ -74,24 +79,33 @@ func GetMealsHandler(c *gin.Context) {
 // @Tags Nutrition
 // @Accept json
 // @Produce json
-// @Param water body model.Water true "Water entry data"
+// @Param water body model.PostWaterRequest true "Water data"
 // @Success 201 {object} model.Water
 // @Router /api/water [post]
 // @Security BearerAuth
 func PostWaterHandler(c *gin.Context) {
-	var req model.Water
+	user_id, err := auth.ExtractUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized", "details": err.Error()})
+		return
+	}
+	var req model.PostWaterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data", "details": err.Error()})
 		return
 	}
 
-	req.ID = uuid.New()
-	req.Timestamp = time.Now()
+	water := model.Water{
+		ID:        uuid.New(),
+		UserID:    uuid.MustParse(user_id),
+		VolumeMl:  req.VolumeMl,
+		Timestamp: time.Now(),
+	}
 
-	if err := db.CreateWater(&req); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create water entry"})
+	if err := db.CreateWater(&water); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create water entry", "details": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, req)
+	c.JSON(http.StatusCreated, water)
 }

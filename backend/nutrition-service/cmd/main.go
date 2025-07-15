@@ -41,7 +41,7 @@ func main() {
 	protected.Use(auth.JWTMiddleware())
 
 	protected.POST("/meals", handler.PostMealHandler)
-	protected.GET("/meals/:user_id", handler.GetMealsHandler)
+	protected.GET("/meals", handler.GetMealsHandler)
 	protected.POST("/water", handler.PostWaterHandler)
 
 	runRegular(r, port)

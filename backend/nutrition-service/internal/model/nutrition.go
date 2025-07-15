@@ -57,10 +57,13 @@ type FoodItem struct {
 }
 
 type PostMealRequest struct {
-	UserID        uuid.UUID `json:"user_id" binding:"required"`
-	Name          string    `json:"name" binding:"required"`
-	Calories      int       `json:"calories" binding:"required"`
-	Protein       float64   `json:"protein" binding:"required"`
-	Carbohydrates float64   `json:"carbohydrates" binding:"required"`
-	Fats          float64   `json:"fats" binding:"required"`
+	Name          string  `json:"name" binding:"required"`
+	Calories      int     `json:"calories" binding:"required"`
+	Protein       float64 `json:"protein" binding:"required"`
+	Carbohydrates float64 `json:"carbohydrates" binding:"required"`
+	Fats          float64 `json:"fats" binding:"required"`
+}
+
+type PostWaterRequest struct {
+	VolumeMl float64 `json:"volume_ml" binding:"required"`
 }
