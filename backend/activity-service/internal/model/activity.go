@@ -68,9 +68,9 @@ type ActivityAnalyticsByType struct {
 // @name PostActivityRequest
 type PostActivityRequest struct {
 	Type        string    `json:"type" binding:"required"`
-	DurationMin int       `json:"duration_min" binding:"required"`
+	DurationMin int       `json:"duration_min" binding:"required,gt=0"`
 	Intensity   Intensity `json:"intensity" binding:"required"`
-	Calories    int       `json:"calories" binding:"required"`
+	Calories    int       `json:"calories" binding:"min=0"`
 	Location    string    `json:"location"`
 	Timestamp   time.Time `json:"timestamp" binding:"required"`
 }
@@ -122,7 +122,7 @@ type GetActivityAnalyticsResponse struct {
 // @name PostStepEntryRequest
 type PostStepEntryRequest struct {
 	Date  time.Time `json:"date" binding:"required"`
-	Steps int       `json:"steps" binding:"required"`
+	Steps int       `json:"steps" binding:"min=0"`
 }
 
 // @name PostStepEntryResponse

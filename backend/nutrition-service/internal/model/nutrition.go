@@ -58,12 +58,12 @@ type FoodItem struct {
 
 type PostMealRequest struct {
 	Name          string  `json:"name" binding:"required"`
-	Calories      int     `json:"calories" binding:"required"`
-	Protein       float64 `json:"protein" binding:"required"`
-	Carbohydrates float64 `json:"carbohydrates" binding:"required"`
-	Fats          float64 `json:"fats" binding:"required"`
+	Calories      int     `json:"calories" binding:"required,min=0"`
+	Protein       float64 `json:"protein" binding:"min=0"`
+	Carbohydrates float64 `json:"carbohydrates" binding:"min=0"`
+	Fats          float64 `json:"fats" binding:"min=0"`
 }
 
 type PostWaterRequest struct {
-	VolumeMl float64 `json:"volume_ml" binding:"required"`
+	VolumeMl float64 `json:"volume_ml" binding:"required,gt=0"`
 }
