@@ -75,6 +75,15 @@ type PostActivityRequest struct {
 	Timestamp   time.Time `json:"timestamp" binding:"required"`
 }
 
+// @name UpdateActivityRequest
+type UpdateActivityRequest struct {
+	Type        string    `json:"type" binding:"required"`
+	DurationMin int       `json:"duration_min" binding:"required,gt=0"`
+	Intensity   Intensity `json:"intensity" binding:"required"`
+	Calories    int       `json:"calories" binding:"min=0"`
+	Location    string    `json:"location"`
+}
+
 // @name PostActivityResponse
 type PostActivityResponse struct {
 	ID          uuid.UUID `json:"id"`

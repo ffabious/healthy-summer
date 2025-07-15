@@ -143,3 +143,104 @@ func GetActivityAnalyticsHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, analytics)
 }
+
+// @Summary Update Activity
+// @Description Update an existing activity entry
+// @Tags activities
+// @Accept json
+// @Produce json
+// @Param id path string true "Activity ID"
+// @Param activity body model.UpdateActivityRequest true "Updated activity data"
+// @Success 200 {object} model.Activity
+// @Router /api/activities/{id} [put]
+// @Security BearerAuth
+func UpdateActivityHandler(c *gin.Context) {
+	user_id, err := auth.ExtractUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized", "details": err.Error()})
+		return
+	}
+
+	activityID := c.Param("id")
+	if activityID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Activity ID is required"})
+		return
+	}
+
+	var req model.UpdateActivityRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data", "details": err.Error()})
+		return
+	}
+
+	// Verify the activity belongs to the authenticated user
+	existingActivity, err := db.GetActivityByID(activityID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Activity not found", "details": err.Error()})
+		return
+	}
+
+	if existingActivity.UserID.String() != user_id {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You can only update your own activities"})
+		return
+	}
+
+	// Update the activity
+	activity := model.Activity{
+		ID:          existingActivity.ID,
+		UserID:      existingActivity.UserID,
+		Type:        req.Type,
+		DurationMin: req.DurationMin,
+		Intensity:   req.Intensity,
+		Calories:    req.Calories,
+		Location:    req.Location,
+		Timestamp:   existingActivity.Timestamp, // Keep original timestamp
+	}
+
+	if err := db.UpdateActivity(&activity); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update activity", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, activity)
+}
+
+// @Summary Delete Activity
+// @Description Delete an existing activity entry
+// @Tags activities
+// @Param id path string true "Activity ID"
+// @Success 204
+// @Router /api/activities/{id} [delete]
+// @Security BearerAuth
+func DeleteActivityHandler(c *gin.Context) {
+	user_id, err := auth.ExtractUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized", "details": err.Error()})
+		return
+	}
+
+	activityID := c.Param("id")
+	if activityID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Activity ID is required"})
+		return
+	}
+
+	// Verify the activity belongs to the authenticated user
+	existingActivity, err := db.GetActivityByID(activityID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Activity not found", "details": err.Error()})
+		return
+	}
+
+	if existingActivity.UserID.String() != user_id {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You can only delete your own activities"})
+		return
+	}
+
+	if err := db.DeleteActivity(activityID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete activity", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusNoContent, nil)
+}

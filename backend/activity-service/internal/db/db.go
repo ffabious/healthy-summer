@@ -228,3 +228,25 @@ func GetActivityAnalyticsByUserID(userID string) (*model.GetActivityAnalyticsRes
 
 	return &analytics, nil
 }
+
+func GetActivityByID(activityID string) (*model.Activity, error) {
+	var activity model.Activity
+	if err := DB.Where("id = ?", activityID).First(&activity).Error; err != nil {
+		return nil, fmt.Errorf("failed to get activity %s: %w", activityID, err)
+	}
+	return &activity, nil
+}
+
+func UpdateActivity(activity *model.Activity) error {
+	if err := DB.Save(activity).Error; err != nil {
+		return fmt.Errorf("failed to update activity: %w", err)
+	}
+	return nil
+}
+
+func DeleteActivity(activityID string) error {
+	if err := DB.Where("id = ?", activityID).Delete(&model.Activity{}).Error; err != nil {
+		return fmt.Errorf("failed to delete activity %s: %w", activityID, err)
+	}
+	return nil
+}
