@@ -109,3 +109,49 @@ func PostWaterHandler(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, water)
 }
+
+// @Summary Get nutrition statistics for a user
+// @Description Get nutrition statistics for today, week, month, and total
+// @Tags Nutrition
+// @Produce json
+// @Success 200 {object} model.NutritionStats
+// @Router /api/stats [get]
+// @Security BearerAuth
+func GetNutritionStatsHandler(c *gin.Context) {
+	user_id, err := auth.ExtractUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized", "details": err.Error()})
+		return
+	}
+
+	stats, err := db.GetNutritionStatsByUserID(user_id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve nutrition stats", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, stats)
+}
+
+// @Summary Get water intake for a user
+// @Description Retrieve all water intake entries for a user
+// @Tags Nutrition
+// @Produce json
+// @Success 200 {array} model.Water
+// @Router /api/water [get]
+// @Security BearerAuth
+func GetWaterIntakeHandler(c *gin.Context) {
+	user_id, err := auth.ExtractUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized", "details": err.Error()})
+		return
+	}
+
+	waterEntries, err := db.GetWaterIntakeByUserID(user_id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve water intake", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"water_entries": waterEntries})
+}

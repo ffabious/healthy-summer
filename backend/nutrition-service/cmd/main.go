@@ -43,6 +43,8 @@ func main() {
 	protected.POST("/meals", handler.PostMealHandler)
 	protected.GET("/meals", handler.GetMealsHandler)
 	protected.POST("/water", handler.PostWaterHandler)
+	protected.GET("/water", handler.GetWaterIntakeHandler)
+	protected.GET("/stats", handler.GetNutritionStatsHandler)
 
 	runRegular(r, port)
 }

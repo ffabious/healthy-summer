@@ -82,12 +82,96 @@ func CreateWater(water *model.Water) error {
 	return nil
 }
 
-func GetNutritionStatsByUserID(userID string) (*model.NutritionStats, error) {
-	var stats model.NutritionStats
-	if err := DB.Where("user_id = ?", userID).First(&stats).Error; err != nil {
-		return nil, fmt.Errorf("failed to get nutrition stats for user %s: %w", userID, err)
+func GetWaterIntakeByUserID(userID string) ([]model.Water, error) {
+	var waterEntries []model.Water
+	if err := DB.Where("user_id = ?", userID).Order("timestamp DESC").Find(&waterEntries).Error; err != nil {
+		return nil, fmt.Errorf("failed to get water intake for user %s: %w", userID, err)
 	}
-	return &stats, nil
+	return waterEntries, nil
+}
+
+func GetNutritionStatsByUserID(userID string) (*model.NutritionStats, error) {
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	weekStart := today.AddDate(0, 0, -int(today.Weekday()))
+	monthStart := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+
+	stats := &model.NutritionStats{}
+
+	// Calculate today's stats
+	todayStats, err := calculatePeriodStats(userID, today, today.AddDate(0, 0, 1))
+	if err != nil {
+		return nil, fmt.Errorf("failed to calculate today's stats: %w", err)
+	}
+	stats.Today = *todayStats
+
+	// Calculate week's stats
+	weekStats, err := calculatePeriodStats(userID, weekStart, weekStart.AddDate(0, 0, 7))
+	if err != nil {
+		return nil, fmt.Errorf("failed to calculate week's stats: %w", err)
+	}
+	stats.Week = *weekStats
+
+	// Calculate month's stats
+	monthStats, err := calculatePeriodStats(userID, monthStart, monthStart.AddDate(0, 1, 0))
+	if err != nil {
+		return nil, fmt.Errorf("failed to calculate month's stats: %w", err)
+	}
+	stats.Month = *monthStats
+
+	// Calculate total stats
+	totalStats, err := calculatePeriodStats(userID, time.Time{}, time.Now().AddDate(1, 0, 0))
+	if err != nil {
+		return nil, fmt.Errorf("failed to calculate total stats: %w", err)
+	}
+	stats.Total = *totalStats
+
+	return stats, nil
+}
+
+func calculatePeriodStats(userID string, startTime, endTime time.Time) (*model.NutritionPeriod, error) {
+	var meals []model.Meal
+	var waterEntries []model.Water
+
+	// Get meals for the period
+	query := DB.Where("user_id = ?", userID)
+	if !startTime.IsZero() {
+		query = query.Where("timestamp >= ?", startTime)
+	}
+	query = query.Where("timestamp < ?", endTime)
+
+	if err := query.Find(&meals).Error; err != nil {
+		return nil, fmt.Errorf("failed to get meals: %w", err)
+	}
+
+	// Get water entries for the period
+	waterQuery := DB.Where("user_id = ?", userID)
+	if !startTime.IsZero() {
+		waterQuery = waterQuery.Where("timestamp >= ?", startTime)
+	}
+	waterQuery = waterQuery.Where("timestamp < ?", endTime)
+
+	if err := waterQuery.Find(&waterEntries).Error; err != nil {
+		return nil, fmt.Errorf("failed to get water entries: %w", err)
+	}
+
+	// Calculate totals
+	stats := &model.NutritionPeriod{
+		MealCount: len(meals),
+	}
+
+	for _, meal := range meals {
+		stats.TotalCalories += meal.Calories
+		stats.TotalProtein += meal.Protein
+		stats.TotalCarbs += meal.Carbohydrates
+		stats.TotalFats += meal.Fats
+	}
+
+	for _, water := range waterEntries {
+		stats.TotalWaterMl += water.VolumeMl
+	}
+
+	return stats, nil
 }
 
 func SearchFood(query string) ([]model.FoodItem, error) {
