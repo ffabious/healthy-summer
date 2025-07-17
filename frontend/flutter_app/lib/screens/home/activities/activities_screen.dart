@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_app/services/activity_service.dart';
 import 'package:flutter_app/models/models.dart';
 import 'package:pedometer_2/pedometer_2.dart';
+import 'package:flutter_app/core/secure_storage.dart';
 
 class ActivitiesScreen extends ConsumerStatefulWidget {
   const ActivitiesScreen({super.key});
@@ -32,6 +33,8 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
     _fetchSteps();
     _startStepTimer();
     _fetchRecentActivities();
+    debugPrint('🔍 Checking for missed step sync segments...');
+    _checkAndSyncMissedSegments();
     debugPrint('🔍 Setting up 6-hour step sync timer...');
     _setupStepSyncTimer();
     debugPrint('✅ ActivitiesScreen initialization complete');
@@ -156,11 +159,227 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
         );
         await ActivityService().createStepEntry(stepEntry);
         debugPrint('✅ Successfully submitted step segment for $segmentName');
+
+        // Store the successful sync info
+        await _storeLastSyncInfo(segmentStart, segmentName);
       } else {
         debugPrint('ℹ️ No new steps to submit for segment $segmentName');
+        // Still store sync info even if no steps to mark segment as processed
+        await _storeLastSyncInfo(segmentStart, segmentName);
       }
     } catch (e) {
       debugPrint('❌ Error submitting step segment: $e');
+      // Don't store sync info on error so we can retry later
+    }
+  }
+
+  Future<void> _storeLastSyncInfo(
+    DateTime segmentStart,
+    String segmentName,
+  ) async {
+    try {
+      await SecureStorage.saveLastSyncInfo(segmentStart, segmentName);
+      debugPrint(
+        '💾 Stored last sync: $segmentName at ${segmentStart.toIso8601String()}',
+      );
+    } catch (e) {
+      debugPrint('❌ Error storing sync info: $e');
+    }
+  }
+
+  Future<void> _checkAndSyncMissedSegments() async {
+    try {
+      final lastSyncDateStr = await SecureStorage.getLastSyncDate();
+      final lastSyncSegment = await SecureStorage.getLastSyncSegment();
+
+      if (lastSyncDateStr == null || lastSyncSegment == null) {
+        debugPrint('📅 No previous sync found - this is first app launch');
+
+        // Set last sync to previous segment so sync will happen within 6 hours
+        final now = DateTime.now();
+        final previousSegmentStart = _getPreviousSegmentStart(now);
+        final previousSegmentName = _getSegmentName(previousSegmentStart);
+
+        await _storeLastSyncInfo(previousSegmentStart, previousSegmentName);
+        debugPrint(
+          '🔧 Set initial sync to previous segment: $previousSegmentName at ${previousSegmentStart.toIso8601String()}',
+        );
+        return;
+      }
+
+      final lastSyncDate = DateTime.parse(lastSyncDateStr);
+      final now = DateTime.now();
+
+      debugPrint(
+        '🔍 Last sync: $lastSyncSegment at ${lastSyncDate.toIso8601String()}',
+      );
+
+      // Get all 6-hour segments that should have been synced since last sync
+      final missedSegments = _getMissedSegments(lastSyncDate, now);
+
+      if (missedSegments.isEmpty) {
+        debugPrint('✅ No missed segments to sync');
+        return;
+      }
+
+      debugPrint('🔄 Found ${missedSegments.length} missed segments to sync');
+
+      for (final segment in missedSegments) {
+        await _syncMissedSegment(segment);
+      }
+
+      debugPrint('✅ Completed syncing all missed segments');
+    } catch (e) {
+      debugPrint('❌ Error checking missed segments: $e');
+    }
+  }
+
+  List<Map<String, dynamic>> _getMissedSegments(
+    DateTime lastSync,
+    DateTime now,
+  ) {
+    final segments = <Map<String, dynamic>>[];
+
+    // Start from the next segment after the last sync
+    var currentSegmentStart = _getNextSegmentStart(lastSync);
+
+    while (currentSegmentStart.isBefore(now)) {
+      final segmentEnd = currentSegmentStart.add(const Duration(hours: 6));
+
+      // Only include segments that are completely finished (ended before current time)
+      if (segmentEnd.isBefore(now)) {
+        final segmentName = _getSegmentName(currentSegmentStart);
+        segments.add({
+          'start': currentSegmentStart,
+          'end': segmentEnd,
+          'name': segmentName,
+        });
+      }
+
+      currentSegmentStart = currentSegmentStart.add(const Duration(hours: 6));
+    }
+
+    return segments;
+  }
+
+  DateTime _getNextSegmentStart(DateTime lastSync) {
+    final hour = lastSync.hour;
+    int nextSegmentHour;
+
+    if (hour < 6) {
+      nextSegmentHour = 6;
+    } else if (hour < 12) {
+      nextSegmentHour = 12;
+    } else if (hour < 18) {
+      nextSegmentHour = 18;
+    } else {
+      nextSegmentHour = 24; // Next day at 0
+    }
+
+    if (nextSegmentHour == 24) {
+      return DateTime(lastSync.year, lastSync.month, lastSync.day + 1, 0, 0, 0);
+    } else {
+      return DateTime(
+        lastSync.year,
+        lastSync.month,
+        lastSync.day,
+        nextSegmentHour,
+        0,
+        0,
+      );
+    }
+  }
+
+  DateTime _getPreviousSegmentStart(DateTime current) {
+    final hour = current.hour;
+    int previousSegmentHour;
+
+    if (hour < 6) {
+      // Currently in 12am-6am, previous is 6pm-12am of yesterday
+      previousSegmentHour = 18;
+      return DateTime(
+        current.year,
+        current.month,
+        current.day - 1,
+        previousSegmentHour,
+        0,
+        0,
+      );
+    } else if (hour < 12) {
+      // Currently in 6am-12pm, previous is 12am-6am
+      previousSegmentHour = 0;
+    } else if (hour < 18) {
+      // Currently in 12pm-6pm, previous is 6am-12pm
+      previousSegmentHour = 6;
+    } else {
+      // Currently in 6pm-12am, previous is 12pm-6pm
+      previousSegmentHour = 12;
+    }
+
+    return DateTime(
+      current.year,
+      current.month,
+      current.day,
+      previousSegmentHour,
+      0,
+      0,
+    );
+  }
+
+  String _getSegmentName(DateTime segmentStart) {
+    final hour = segmentStart.hour;
+
+    if (hour == 0) {
+      return "12am-6am";
+    } else if (hour == 6) {
+      return "6am-12pm";
+    } else if (hour == 12) {
+      return "12pm-6pm";
+    } else if (hour == 18) {
+      return "6pm-12am";
+    } else {
+      return "unknown";
+    }
+  }
+
+  Future<void> _syncMissedSegment(Map<String, dynamic> segment) async {
+    try {
+      final segmentStart = segment['start'] as DateTime;
+      final segmentEnd = segment['end'] as DateTime;
+      final segmentName = segment['name'] as String;
+
+      debugPrint(
+        '🔄 Syncing missed segment: $segmentName (${segmentStart.toString().substring(0, 16)} - ${segmentEnd.toString().substring(0, 16)})',
+      );
+
+      // Get step count for this specific 6-hour segment
+      final segmentSteps = await Pedometer().getStepCount(
+        from: segmentStart,
+        to: segmentEnd,
+      );
+
+      if (segmentSteps > 0) {
+        final stepEntry = PostStepEntryRequestModel(
+          steps: segmentSteps,
+          date: segmentStart,
+        );
+
+        debugPrint(
+          '📊 Submitting $segmentSteps steps for missed segment $segmentName',
+        );
+        await ActivityService().createStepEntry(stepEntry);
+        debugPrint('✅ Successfully submitted missed segment $segmentName');
+      } else {
+        debugPrint(
+          'ℹ️ No steps found for missed segment $segmentName - skipping',
+        );
+      }
+
+      // Always store sync info to mark segment as processed, regardless of step count
+      await _storeLastSyncInfo(segmentStart, segmentName);
+    } catch (e) {
+      debugPrint('❌ Error syncing missed segment ${segment['name']}: $e');
+      // Don't store sync info on error so we can retry this segment later
     }
   }
 
