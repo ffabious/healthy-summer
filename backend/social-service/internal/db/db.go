@@ -23,12 +23,13 @@ func Connect() {
 	}
 
 	dsn := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable search_path=%s",
 		os.Getenv("DB_HOST"),
 		os.Getenv("DB_PORT"),
 		os.Getenv("DB_USER"),
 		os.Getenv("DB_PASSWORD"),
 		os.Getenv("DB_NAME"),
+		os.Getenv("DB_SCHEMA"),
 	)
 
 	// Connect to social schema
@@ -46,7 +47,14 @@ func Connect() {
 	}
 
 	// Connect to nutrition schema
-	nutritionDSN := dsn + " search_path=nutrition"
+	nutritionDSN := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable search_path=nutrition",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_NAME"),
+	)
 	for i := range 10 {
 		NutritionDB, err = gorm.Open(postgres.Open(nutritionDSN), &gorm.Config{})
 		if err == nil {
@@ -60,7 +68,14 @@ func Connect() {
 	}
 
 	// Connect to user schema
-	userDSN := dsn + " search_path=user"
+	userDSN := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable search_path=user",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_NAME"),
+	)
 	for i := range 10 {
 		UserDB, err = gorm.Open(postgres.Open(userDSN), &gorm.Config{})
 		if err == nil {
@@ -82,9 +97,15 @@ func Connect() {
 		log.Printf("Failed to create uuid-ossp extension (might already exist): %v", err)
 	}
 
+	// Set search_path for the social schema
+	_, err = sqlDB.Exec(fmt.Sprintf("SET search_path TO %s", os.Getenv("DB_SCHEMA")))
+	if err != nil {
+		log.Printf("Failed to set search_path: %v", err)
+	}
+
 	log.Println("Database connected successfully")
 
-	// Auto-migrate models
+	// Auto-migrate models in the social schema
 	if err := DB.AutoMigrate(&model.Message{}, &model.Conversation{}, &model.Friend{}); err != nil {
 		log.Fatalf("Failed to migrate database: %v", err)
 	}
@@ -132,7 +153,7 @@ func MarkMessagesAsRead(messageIDs []uuid.UUID, userID uuid.UUID) error {
 // Conversation operations
 func GetOrCreateConversation(user1ID, user2ID uuid.UUID) (*model.Conversation, error) {
 	var conversation model.Conversation
-	
+
 	// Try to find existing conversation (either direction)
 	err := DB.Where(
 		"(user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?)",
@@ -189,7 +210,7 @@ func GetConversationsByUser(userID uuid.UUID) ([]model.ConversationWithUser, err
 	for rows.Next() {
 		var conv model.ConversationWithUser
 		err := rows.Scan(
-			&conv.ID, &conv.User1ID, &conv.User2ID, &conv.LastMessageID, 
+			&conv.ID, &conv.User1ID, &conv.User2ID, &conv.LastMessageID,
 			&conv.CreatedAt, &conv.UpdatedAt, &conv.FriendName, &conv.FriendEmail,
 		)
 		if err != nil {
@@ -315,7 +336,7 @@ func GetFriendsActivityFeed(userID uuid.UUID) ([]model.FeedItem, error) {
 		if waterFeedItem != nil {
 			feedItems = append(feedItems, *waterFeedItem)
 		}
-		
+
 		// Future: Add other activity checks here
 		// exerciseFeedItem := checkExerciseActivity(friendUserID, friend.FriendName, today, tomorrow)
 		// mealFeedItem := checkMealActivity(friendUserID, friend.FriendName, today, tomorrow)
@@ -341,8 +362,8 @@ func checkWaterIntakeActivity(userID uuid.UUID, userName string, today, tomorrow
 	// If friend drank 2L or more (2000ml), create feed item
 	if totalWater >= 2000 {
 		return &model.FeedItem{
-			UserID:      userID,
-			UserName:    userName,
+			UserID:       userID,
+			UserName:     userName,
 			ActivityType: "water_intake",
 			ActivityData: map[string]interface{}{
 				"volume_ml": totalWater,
