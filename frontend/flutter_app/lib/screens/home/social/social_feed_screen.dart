@@ -1,36 +1,79 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/models/models.dart';
+import 'package:flutter_app/services/services.dart';
 
-class SocialFeedScreen extends StatelessWidget {
+class SocialFeedScreen extends StatefulWidget {
   const SocialFeedScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final posts = [
-      {
-        'name': 'Alice',
-        'activity': 'Completed 5 km run',
-        'time': '2h ago',
-        'type': 'run',
-      },
-      {
-        'name': 'Bob',
-        'activity': 'Drank 2L of water today',
-        'time': '4h ago',
-        'type': 'water',
-      },
-      {
-        'name': 'Charlie',
-        'activity': 'Logged 8000 steps',
-        'time': 'Yesterday',
-        'type': 'steps',
-      },
-    ];
+  State<SocialFeedScreen> createState() => _SocialFeedScreenState();
+}
 
+class _SocialFeedScreenState extends State<SocialFeedScreen> {
+  final SocialService _socialService = SocialService();
+  List<FeedItem> feedItems = [];
+  bool isLoading = true;
+  String? error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFeed();
+  }
+
+  Future<void> _loadFeed() async {
+    try {
+      setState(() {
+        isLoading = true;
+        error = null;
+      });
+
+      final response = await _socialService.getFeed();
+      setState(() {
+        feedItems = response.feedItems;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        error = e.toString();
+        isLoading = false;
+      });
+    }
+  }
+
+  String _getActivityText(FeedItem item) {
+    switch (item.activityType) {
+      case 'water_intake':
+        final volumeMl = item.activityData['volume_ml'] as num? ?? 0;
+        final volumeL = (volumeMl / 1000).toStringAsFixed(1);
+        return 'Drank ${volumeL}L of water today';
+      default:
+        return 'Completed activity';
+    }
+  }
+
+  String _getTimeAgo(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inDays > 0) {
+      return '${difference.inDays}d ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m ago';
+    } else {
+      return 'Just now';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     IconData getActivityIcon(String type) {
       switch (type) {
         case 'run':
           return Icons.directions_run;
-        case 'water':
+        case 'water_intake':
           return Icons.water_drop;
         case 'steps':
           return Icons.directions_walk;
@@ -44,108 +87,141 @@ class SocialFeedScreen extends StatelessWidget {
         title: const Text('Social Feed'),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadFeed),
+        ],
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: posts.length,
-        itemBuilder: (context, index) {
-          final post = posts[index];
-
-          return AnimatedSocialCard(
-            index: index,
-            child: Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              margin: const EdgeInsets.only(bottom: 16),
-              child: Row(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : error != null
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Left: Purple side with avatar + name
-                  Container(
-                    width: 100,
-                    height: 120,
-                    decoration: const BoxDecoration(
-                      color: Colors.deepPurple,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(16),
-                        bottomLeft: Radius.circular(16),
-                      ),
+                  Text('Error: $error'),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _loadFeed,
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            )
+          : feedItems.isEmpty
+          ? const Center(
+              child: Text(
+                'No activities from friends yet.\nAdd friends to see their activities!',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+              ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: feedItems.length,
+              itemBuilder: (context, index) {
+                final item = feedItems[index];
+
+                return AnimatedSocialCard(
+                  index: index,
+                  child: Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    child: Row(
                       children: [
-                        CircleAvatar(
-                          backgroundColor: Colors.white,
-                          child: Text(
-                            post['name']![0],
-                            style: const TextStyle(color: Colors.deepPurple),
+                        // Left: Purple side with avatar + name
+                        Container(
+                          width: 100,
+                          height: 120,
+                          decoration: const BoxDecoration(
+                            color: Colors.deepPurple,
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(16),
+                              bottomLeft: Radius.circular(16),
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CircleAvatar(
+                                backgroundColor: Colors.white,
+                                child: Text(
+                                  item.userName.isNotEmpty
+                                      ? item.userName[0].toUpperCase()
+                                      : '?',
+                                  style: const TextStyle(
+                                    color: Colors.deepPurple,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                item.userName,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          post['name']!,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
+
+                        // Right: Light section with icon on top, activity text, and timestamp bottom right
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            height: 120,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFF8F8F8),
+                              borderRadius: BorderRadius.only(
+                                topRight: Radius.circular(16),
+                                bottomRight: Radius.circular(16),
+                              ),
+                            ),
+                            child: Stack(
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Icon(
+                                      getActivityIcon(item.activityType),
+                                      color: Colors.deepPurple,
+                                      size: 28,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      _getActivityText(item),
+                                      style: const TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: Text(
+                                    _getTimeAgo(item.createdAt),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
-
-                  // Right: Light section with icon on top, activity text, and timestamp bottom right
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      height: 120,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFF8F8F8),
-                        borderRadius: BorderRadius.only(
-                          topRight: Radius.circular(16),
-                          bottomRight: Radius.circular(16),
-                        ),
-                      ),
-                      child: Stack(
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(
-                                getActivityIcon(post['type']!),
-                                color: Colors.deepPurple,
-                                size: 28,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                post['activity']!,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: Text(
-                              post['time']!,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                );
+              },
             ),
-          );
-        },
-      ),
     );
   }
 }

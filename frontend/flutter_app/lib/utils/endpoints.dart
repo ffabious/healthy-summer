@@ -2,6 +2,7 @@ var addr = "ffabious-healthy-summer.ru";
 var userSubdomain = "user";
 var activitySubdomain = "activity";
 var nutritionSubdomain = "nutrition";
+var socialSubdomain = "social";
 
 // User Endpoints
 var userUrl = 'https://$userSubdomain.$addr/api/users';
@@ -33,3 +34,7 @@ var getMealsEndpoint = '$nutritionUrl/meals';
 var postWaterEndpoint = '$nutritionUrl/water';
 var getWaterEndpoint = '$nutritionUrl/water';
 var getNutritionStatsEndpoint = '$nutritionUrl/stats';
+
+// Social Endpoints
+var socialUrl = 'https://$socialSubdomain.$addr/api';
+var getFeedEndpoint = '$socialUrl/feed';
