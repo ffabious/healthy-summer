@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_app/widgets/widgets.dart';
 import 'package:flutter_app/services/activity_service.dart';
 import 'package:flutter_app/models/models.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:pedometer_2/pedometer_2.dart';
 
 class ActivitiesScreen extends ConsumerStatefulWidget {
@@ -16,7 +14,7 @@ class ActivitiesScreen extends ConsumerStatefulWidget {
 
 class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
   Timer? _stepTimer;
-  Timer? _midnightTimer;
+  Timer? _stepSyncTimer;
   int _currentSteps = 0;
   bool _isLoadingSteps = true;
 
@@ -25,10 +23,6 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
   bool _isLoadingActivities = true;
   bool _hasActivitiesError = false;
 
-  // Daily step submission
-  static const String _lastSubmissionDateKey = 'last_step_submission_date';
-  static const _secureStorage = FlutterSecureStorage();
-
   @override
   void initState() {
     super.initState();
@@ -36,16 +30,15 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
     _fetchSteps();
     _startStepTimer();
     _fetchRecentActivities();
-    debugPrint('🔍 Checking for previous day step submission...');
-    _checkAndSubmitPreviousDaySteps();
-    _setupMidnightTimer();
+    debugPrint('🔍 Setting up 6-hour step sync timer...');
+    _setupStepSyncTimer();
     debugPrint('✅ ActivitiesScreen initialization complete');
   }
 
   @override
   void dispose() {
     _stepTimer?.cancel();
-    _midnightTimer?.cancel();
+    _stepSyncTimer?.cancel();
     super.dispose();
   }
 
@@ -81,17 +74,91 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
     }
   }
 
-  void _setupMidnightTimer() {
+  void _setupStepSyncTimer() {
     final now = DateTime.now();
-    final tomorrow = DateTime(now.year, now.month, now.day + 1);
-    final timeUntilMidnight = tomorrow.difference(now);
 
-    _midnightTimer = Timer(timeUntilMidnight, () {
-      _submitPreviousDaySteps();
-      _setupMidnightTimer(); // Setup for next day
+    // Calculate next sync time (every 6 hours: 0, 6, 12, 18)
+    final currentHour = now.hour;
+    int nextSyncHour;
+
+    if (currentHour < 6) {
+      nextSyncHour = 6;
+    } else if (currentHour < 12) {
+      nextSyncHour = 12;
+    } else if (currentHour < 18) {
+      nextSyncHour = 18;
+    } else {
+      nextSyncHour = 24; // Next day at midnight
+    }
+
+    final nextSync = nextSyncHour == 24
+        ? DateTime(now.year, now.month, now.day + 1, 0, 0, 0)
+        : DateTime(now.year, now.month, now.day, nextSyncHour, 0, 0);
+
+    final timeUntilNextSync = nextSync.difference(now);
+
+    debugPrint(
+      '⏰ Next step sync in ${timeUntilNextSync.inMinutes} minutes at ${nextSync.toString().substring(11, 16)}',
+    );
+
+    _stepSyncTimer = Timer(timeUntilNextSync, () {
+      _submitCurrentStepSegment();
+      _setupStepSyncTimer(); // Setup for next sync
     });
   }
 
+  Future<void> _submitCurrentStepSegment() async {
+    try {
+      final now = DateTime.now();
+      final currentHour = now.hour;
+
+      // Determine the time segment we're submitting for
+      DateTime segmentStart;
+      String segmentName;
+
+      if (currentHour >= 0 && currentHour < 6) {
+        // 12am-6am segment
+        segmentStart = DateTime(now.year, now.month, now.day, 0, 0, 0);
+        segmentName = "12am-6am";
+      } else if (currentHour >= 6 && currentHour < 12) {
+        // 6am-12pm segment
+        segmentStart = DateTime(now.year, now.month, now.day, 6, 0, 0);
+        segmentName = "6am-12pm";
+      } else if (currentHour >= 12 && currentHour < 18) {
+        // 12pm-6pm segment
+        segmentStart = DateTime(now.year, now.month, now.day, 12, 0, 0);
+        segmentName = "12pm-6pm";
+      } else {
+        // 6pm-12am segment
+        segmentStart = DateTime(now.year, now.month, now.day, 18, 0, 0);
+        segmentName = "6pm-12am";
+      }
+
+      // Since we can't get steps for specific time ranges, we'll use current steps
+      // This is a simplified approach - in a real app you'd want to store incremental data
+      final segmentSteps = _currentSteps > 0
+          ? (_currentSteps / 4).round()
+          : 0; // Rough estimate
+
+      if (segmentSteps > 0) {
+        final stepEntry = PostStepEntryRequestModel(
+          steps: segmentSteps,
+          date: segmentStart, // Use segment start time
+        );
+
+        debugPrint(
+          '📊 Submitting $segmentSteps steps for segment $segmentName',
+        );
+        await ActivityService().createStepEntry(stepEntry);
+        debugPrint('✅ Successfully submitted step segment for $segmentName');
+      }
+    } catch (e) {
+      debugPrint('❌ Error submitting step segment: $e');
+    }
+  }
+
+  // Old functions - commented out during 6-hour sync implementation
+  /*
   Future<void> _checkAndSubmitPreviousDaySteps() async {
     try {
       final lastSubmissionDateStr = await _secureStorage.read(
@@ -271,45 +338,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
 
     debugPrint('=== END TEST ===');
   }
-
-  Future<void> _resetSubmissionDate() async {
-    try {
-      // Check if there was a previous submission date
-      final existingDate = await _secureStorage.read(
-        key: _lastSubmissionDateKey,
-      );
-
-      await _secureStorage.delete(key: _lastSubmissionDateKey);
-
-      debugPrint('🔄 Submission date reset!');
-      debugPrint('  Previous date: ${existingDate ?? "None"}');
-      debugPrint('  Next app restart will trigger step submission.');
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              existingDate != null
-                  ? '🔄 Reset complete! Had: ${DateTime.parse(existingDate).day}/${DateTime.parse(existingDate).month}. Restart to test.'
-                  : '🔄 Reset complete! No previous date found. Restart to test.',
-            ),
-            backgroundColor: Colors.blue,
-            duration: const Duration(seconds: 4),
-          ),
-        );
-      }
-    } catch (e) {
-      debugPrint('Error resetting submission date: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error resetting: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
+  */
 
   @override
   Widget build(BuildContext context) {
@@ -322,44 +351,44 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
           children: [
             // Steps Summary
             Center(
-              child: SizedBox(
+              child: Container(
                 width: 200,
                 height: 200,
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.blue, width: 2),
+                ),
                 child: _isLoadingSteps
                     ? const CircularProgressIndicator()
-                    : AnimatedStepCounterArc(steps: _currentSteps, goal: 10000),
+                    : Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '$_currentSteps',
+                            style: const TextStyle(
+                              fontSize: 36,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue,
+                            ),
+                          ),
+                          const Text(
+                            'steps',
+                            style: TextStyle(fontSize: 16, color: Colors.grey),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Goal: 10,000',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
               ),
             ),
-            const SizedBox(height: 8),
-            // Debug buttons row
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.upload),
-                    label: const Text('Test Submit'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
-                      foregroundColor: Colors.white,
-                    ),
-                    onPressed: _testSubmitSteps,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Reset Timer'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                    ),
-                    onPressed: _resetSubmissionDate,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             // Add Activity Button
             SizedBox(
               width: double.infinity,

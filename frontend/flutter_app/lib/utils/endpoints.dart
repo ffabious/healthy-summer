@@ -23,6 +23,8 @@ var getActivitiesEndpoint = activityUrl;
 var updateActivityEndpoint = activityUrl; // Used with /{id}
 var deleteActivityEndpoint = activityUrl; // Used with /{id}
 var postStepEntryEndpoint = '$activityUrl/steps';
+var getStepEntriesEndpoint = '$activityUrl/steps';
+var getActivityStatsEndpoint = '$activityUrl/stats';
 
 // Nutrition Endpoints
 var nutritionUrl = 'https://$nutritionSubdomain.$addr/api';

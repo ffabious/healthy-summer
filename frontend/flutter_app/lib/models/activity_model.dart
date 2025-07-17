@@ -236,6 +236,102 @@ class GetActivitiesResponseModel {
   }
 }
 
+class ActivityStatsModel {
+  final ActivityPeriodModel today;
+  final ActivityPeriodModel week;
+  final ActivityPeriodModel month;
+  final ActivityPeriodModel total;
+
+  ActivityStatsModel({
+    required this.today,
+    required this.week,
+    required this.month,
+    required this.total,
+  });
+
+  factory ActivityStatsModel.fromJson(Map<String, dynamic> json) {
+    return ActivityStatsModel(
+      today: ActivityPeriodModel.fromJson(json['today']),
+      week: ActivityPeriodModel.fromJson(json['week']),
+      month: ActivityPeriodModel.fromJson(json['month']),
+      total: ActivityPeriodModel.fromJson(json['total']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'today': today.toJson(),
+      'week': week.toJson(),
+      'month': month.toJson(),
+      'total': total.toJson(),
+    };
+  }
+}
+
+class ActivityPeriodModel {
+  final int activityCount;
+  final int durationMin;
+  final int calories;
+  final int steps;
+
+  ActivityPeriodModel({
+    required this.activityCount,
+    required this.durationMin,
+    required this.calories,
+    required this.steps,
+  });
+
+  factory ActivityPeriodModel.fromJson(Map<String, dynamic> json) {
+    return ActivityPeriodModel(
+      activityCount: json['activity_count'] ?? 0,
+      durationMin: json['duration_min'] ?? 0,
+      calories: json['calories'] ?? 0,
+      steps: json['steps'] ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'activity_count': activityCount,
+      'duration_min': durationMin,
+      'calories': calories,
+      'steps': steps,
+    };
+  }
+}
+
+class StepEntryModel {
+  final String id;
+  final String userId;
+  final int steps;
+  final DateTime date;
+
+  StepEntryModel({
+    required this.id,
+    required this.userId,
+    required this.steps,
+    required this.date,
+  });
+
+  factory StepEntryModel.fromJson(Map<String, dynamic> json) {
+    return StepEntryModel(
+      id: json['id'],
+      userId: json['user_id'],
+      steps: json['steps'],
+      date: DateTime.parse(json['date']).toLocal(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'user_id': userId,
+      'steps': steps,
+      'date': date.toUtc().toIso8601String(),
+    };
+  }
+}
+
 class PostStepEntryRequestModel {
   final int steps;
   final DateTime date;

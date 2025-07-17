@@ -141,4 +141,50 @@ class ActivityService {
       }
     }
   }
+
+  Future<List<StepEntryModel>> getStepEntries({int days = 30}) async {
+    try {
+      final response = await _dio.get(
+        '$getStepEntriesEndpoint?days=$days',
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': 'Bearer ${await SecureStorage.getToken()}',
+          },
+        ),
+      );
+
+      final List<dynamic> data = response.data;
+      return data.map((item) => StepEntryModel.fromJson(item)).toList();
+    } on DioException catch (e) {
+      if (e.response != null) {
+        throw Exception('Failed to get step entries: ${e.response?.data}');
+      } else {
+        throw Exception('Failed to get step entries: ${e.message}');
+      }
+    }
+  }
+
+  Future<ActivityStatsModel> getActivityStats() async {
+    try {
+      final response = await _dio.get(
+        getActivityStatsEndpoint,
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': 'Bearer ${await SecureStorage.getToken()}',
+          },
+        ),
+      );
+      return ActivityStatsModel.fromJson(response.data);
+    } on DioException catch (e) {
+      if (e.response != null) {
+        throw Exception('Failed to get activity stats: ${e.response?.data}');
+      } else {
+        throw Exception('Failed to get activity stats: ${e.message}');
+      }
+    }
+  }
 }
