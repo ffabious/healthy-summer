@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_app/widgets/step_counter_arc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_app/services/activity_service.dart';
 import 'package:flutter_app/models/models.dart';
@@ -355,37 +356,12 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
                 width: 200,
                 height: 200,
                 decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.blue, width: 2),
+                  border: Border.all(color: Colors.orange, width: 8),
                 ),
                 child: _isLoadingSteps
                     ? const CircularProgressIndicator()
-                    : Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            '$_currentSteps',
-                            style: const TextStyle(
-                              fontSize: 36,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue,
-                            ),
-                          ),
-                          const Text(
-                            'steps',
-                            style: TextStyle(fontSize: 16, color: Colors.grey),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Goal: 10,000',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                        ],
-                      ),
+                    : AnimatedStepCounterArc(steps: 11000, goal: 10000),
               ),
             ),
             const SizedBox(height: 24),
