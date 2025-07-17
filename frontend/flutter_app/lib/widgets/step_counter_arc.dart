@@ -206,7 +206,7 @@ class _FireworksPainter extends CustomPainter {
         ];
 
         final paint = Paint()
-          ..color = colors[i % colors.length].withOpacity(opacity)
+          ..color = colors[i % colors.length].withValues(alpha: opacity)
           ..style = PaintingStyle.fill;
 
         // Draw particle as small circle
@@ -219,7 +219,7 @@ class _FireworksPainter extends CustomPainter {
         // Add trailing effect
         if (burstProgress > 0.3) {
           final trailPaint = Paint()
-            ..color = colors[i % colors.length].withOpacity(opacity * 0.3)
+            ..color = colors[i % colors.length].withValues(alpha: opacity * 0.3)
             ..style = PaintingStyle.fill;
 
           final trailDistance = distance * 0.7;

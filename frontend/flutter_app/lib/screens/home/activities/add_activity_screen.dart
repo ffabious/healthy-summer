@@ -79,16 +79,6 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
     if (_formKey.currentState?.validate() ?? false) {
       _formKey.currentState!.save();
 
-      // TODO: Send data to backend or provider
-      // Example:
-      // final newActivity = Activity(
-      //   type: _selectedType!,
-      //   durationMin: _durationMin!,
-      //   intensity: _intensity!,
-      //   calories: _calories!,
-      //   location: _locationController.text,
-      // );
-
       if (_selectedType == null ||
           _durationMin == null ||
           _intensity == null ||

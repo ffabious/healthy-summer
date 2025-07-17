@@ -251,7 +251,7 @@ class _EditProfileBodyState extends ConsumerState<EditProfileBody> {
             ),
             const SizedBox(height: 16),
 
-            // TODO: Fix email changes
+            // TODO: Add email change functionality
             TextFormField(
               controller: _emailController,
               decoration: const InputDecoration(
