@@ -82,6 +82,9 @@ func startHTTPServer() {
 		api.POST("/friends", handler.SendFriendRequest)
 		api.PUT("/friends/:friendId/accept", handler.AcceptFriendRequest)
 		api.GET("/friends", handler.GetFriends)
+
+		// Feed routes
+		api.GET("/feed", handler.GetFeed)
 	}
 
 	port := os.Getenv("PORT")

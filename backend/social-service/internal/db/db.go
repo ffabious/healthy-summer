@@ -14,6 +14,8 @@ import (
 )
 
 var DB *gorm.DB
+var NutritionDB *gorm.DB
+var UserDB *gorm.DB
 
 func Connect() {
 	if err := godotenv.Load(); err != nil {
@@ -29,6 +31,7 @@ func Connect() {
 		os.Getenv("DB_NAME"),
 	)
 
+	// Connect to social schema
 	var err error
 	for i := range 10 {
 		DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -40,6 +43,34 @@ func Connect() {
 	}
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
+	}
+
+	// Connect to nutrition schema
+	nutritionDSN := dsn + " search_path=nutrition"
+	for i := range 10 {
+		NutritionDB, err = gorm.Open(postgres.Open(nutritionDSN), &gorm.Config{})
+		if err == nil {
+			break
+		}
+		log.Printf("Nutrition DB connection failed, retrying... (%d/10)", i+1)
+		time.Sleep(2 * time.Second)
+	}
+	if err != nil {
+		log.Fatalf("Failed to connect to nutrition database: %v", err)
+	}
+
+	// Connect to user schema
+	userDSN := dsn + " search_path=user"
+	for i := range 10 {
+		UserDB, err = gorm.Open(postgres.Open(userDSN), &gorm.Config{})
+		if err == nil {
+			break
+		}
+		log.Printf("User DB connection failed, retrying... (%d/10)", i+1)
+		time.Sleep(2 * time.Second)
+	}
+	if err != nil {
+		log.Fatalf("Failed to connect to user database: %v", err)
 	}
 
 	sqlDB, err := DB.DB()
@@ -254,4 +285,72 @@ func GetUserByEmail(email string) (*model.User, error) {
 		return nil, err
 	}
 	return &user, nil
+}
+
+// Feed operations
+func GetFriendsActivityFeed(userID uuid.UUID) ([]model.FeedItem, error) {
+	var feedItems []model.FeedItem
+
+	// Get friends first from social schema
+	friends, err := GetFriendsByUser(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// For each friend, check their activities for today
+	today := time.Now().Truncate(24 * time.Hour)
+	tomorrow := today.Add(24 * time.Hour)
+
+	for _, friend := range friends {
+		var friendUserID uuid.UUID
+		// Determine the friend's actual user ID
+		if friend.UserID == userID {
+			friendUserID = friend.FriendID
+		} else {
+			friendUserID = friend.UserID
+		}
+
+		// Check water intake activity (currently the only implemented activity)
+		waterFeedItem := checkWaterIntakeActivity(friendUserID, friend.FriendName, today, tomorrow)
+		if waterFeedItem != nil {
+			feedItems = append(feedItems, *waterFeedItem)
+		}
+		
+		// Future: Add other activity checks here
+		// exerciseFeedItem := checkExerciseActivity(friendUserID, friend.FriendName, today, tomorrow)
+		// mealFeedItem := checkMealActivity(friendUserID, friend.FriendName, today, tomorrow)
+	}
+
+	return feedItems, nil
+}
+
+// checkWaterIntakeActivity checks if a friend achieved the water intake goal (2L)
+func checkWaterIntakeActivity(userID uuid.UUID, userName string, today, tomorrow time.Time) *model.FeedItem {
+	// Query nutrition database for water intake
+	var totalWater float64
+	err := NutritionDB.Table("waters").
+		Select("COALESCE(SUM(volume_ml), 0)").
+		Where("user_id = ? AND timestamp >= ? AND timestamp < ?", userID, today, tomorrow).
+		Scan(&totalWater).Error
+
+	if err != nil {
+		log.Printf("Error querying water intake for user %s: %v", userID, err)
+		return nil
+	}
+
+	// If friend drank 2L or more (2000ml), create feed item
+	if totalWater >= 2000 {
+		return &model.FeedItem{
+			UserID:      userID,
+			UserName:    userName,
+			ActivityType: "water_intake",
+			ActivityData: map[string]interface{}{
+				"volume_ml": totalWater,
+				"goal_met":  true,
+			},
+			CreatedAt: time.Now(),
+		}
+	}
+
+	return nil
 }

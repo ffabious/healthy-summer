@@ -214,6 +214,27 @@ func MarkAsRead(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Messages marked as read"})
 }
 
+// GetFeed handles HTTP GET requests to fetch activity feed
+func GetFeed(c *gin.Context) {
+	userID, err := auth.GetUserIDFromContext(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user context"})
+		return
+	}
+
+	feedItems, err := db.GetFriendsActivityFeed(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch feed", "details": err.Error()})
+		return
+	}
+
+	response := model.GetFeedResponse{
+		FeedItems: feedItems,
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
 // Legacy handlers for compatibility
 func SocialsHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)

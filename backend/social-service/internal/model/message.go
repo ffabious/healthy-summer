@@ -99,3 +99,16 @@ type FriendWithUser struct {
 type MarkAsReadRequest struct {
 	MessageIDs []uuid.UUID `json:"message_ids" binding:"required"`
 }
+
+// Feed models
+type FeedItem struct {
+	UserID       uuid.UUID              `json:"user_id"`
+	UserName     string                 `json:"user_name"`
+	ActivityType string                 `json:"activity_type"`
+	ActivityData map[string]interface{} `json:"activity_data"`
+	CreatedAt    time.Time              `json:"created_at"`
+}
+
+type GetFeedResponse struct {
+	FeedItems []FeedItem `json:"feed_items"`
+}
