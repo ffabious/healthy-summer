@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/ffabious/healthy-summer/activity-service/internal/auth"
@@ -130,6 +131,37 @@ func PostStepEntryHandler(c *gin.Context) {
 	c.JSON(http.StatusCreated, stepEntry)
 }
 
+// @Summary Get Step Entries
+// @Description Get step entries for the currently authenticated user
+// @Tags activities
+// @Produce json
+// @Param days query int false "Number of days to retrieve (default: 30)"
+// @Success 200 {array} model.StepEntry
+// @Router /api/activities/steps [get]
+// @Security BearerAuth
+func GetStepEntriesHandler(c *gin.Context) {
+	user_id, err := auth.ExtractUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized", "details": err.Error()})
+		return
+	}
+
+	// Parse days parameter, default to 30
+	daysStr := c.DefaultQuery("days", "30")
+	days, err := strconv.Atoi(daysStr)
+	if err != nil || days <= 0 {
+		days = 30
+	}
+
+	stepEntries, err := db.GetStepEntriesByUserID(user_id, days)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve step entries", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, stepEntries)
+}
+
 // @Summary Get Activity Analytics
 // @Description Get activity analytics for a user
 // @Tags activities
@@ -248,4 +280,49 @@ func DeleteActivityHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusNoContent, nil)
+}
+
+// @Summary Create Step Entry
+// @Description Create a new step entry for the authenticated user
+// @Tags activities
+// @Accept json
+// @Produce json
+// @Param stepEntry body model.StepEntry true "Step entry data"
+// @Success 201 {object} model.StepEntry
+// @Failure 400 {object} gin.H
+// @Failure 401 {object} gin.H
+// @Failure 500 {object} gin.H
+// @Router /api/activities/steps [post]
+func CreateStepEntryHandler(c *gin.Context) {
+	user_id, err := auth.ExtractUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized", "details": err.Error()})
+		return
+	}
+
+	var req struct {
+		Steps int       `json:"steps" binding:"required"`
+		Date  time.Time `json:"date" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input", "details": err.Error()})
+		return
+	}
+
+	// Create step entry
+	stepEntry := model.StepEntry{
+		ID:     uuid.New(),
+		UserID: uuid.MustParse(user_id),
+		Steps:  req.Steps,
+		Date:   req.Date,
+	}
+
+	err = db.CreateStepEntry(&stepEntry)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create step entry", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, stepEntry)
 }

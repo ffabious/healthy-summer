@@ -46,7 +46,8 @@ func main() {
 	protected.PUT("/:id", handler.UpdateActivityHandler)
 	protected.DELETE("/:id", handler.DeleteActivityHandler)
 	protected.GET("/stats", handler.GetCurrentUserActivityStatsHandler)
-	protected.POST("/steps", handler.PostStepEntryHandler)
+	protected.POST("/steps", handler.CreateStepEntryHandler)
+	protected.GET("/steps", handler.GetStepEntriesHandler)
 	protected.GET("/analytics/:user_id", handler.GetActivityAnalyticsHandler)
 
 	cert_file := os.Getenv("TLS_CERT_PATH")

@@ -187,6 +187,16 @@ func CreateStepEntry(stepEntry *model.StepEntry) error {
 	return nil
 }
 
+func GetStepEntriesByUserID(userID string, days int) ([]model.StepEntry, error) {
+	var stepEntries []model.StepEntry
+	if err := DB.Where("user_id = ? AND date >= CURRENT_DATE - INTERVAL '? days'", userID, days-1).
+		Order("date DESC").
+		Find(&stepEntries).Error; err != nil {
+		return nil, fmt.Errorf("failed to get step entries for user %s: %w", userID, err)
+	}
+	return stepEntries, nil
+}
+
 func GetActivityAnalyticsByUserID(userID string) (*model.GetActivityAnalyticsResponse, error) {
 	var analytics model.GetActivityAnalyticsResponse
 
