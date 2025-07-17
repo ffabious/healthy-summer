@@ -12,16 +12,105 @@ class NutritionScreen extends StatefulWidget {
 
 class _NutritionScreenState extends State<NutritionScreen> {
   final NutritionService _nutritionService = NutritionService();
+  final NotificationService _notificationService = NotificationService();
   NutritionStats? _stats;
   List<PostMealResponseModel> _recentMeals = [];
   List<PostWaterIntakeResponseModel> _recentWaterEntries = [];
   bool _isLoading = true;
   String? _error;
+  bool _notificationsEnabled = false;
 
   @override
   void initState() {
     super.initState();
     _loadNutritionData();
+    _checkNotificationStatus();
+  }
+
+  Future<void> _checkNotificationStatus() async {
+    final enabled = await _notificationService.areNotificationsEnabled();
+    setState(() {
+      _notificationsEnabled = enabled;
+    });
+  }
+
+  Future<void> _toggleWaterReminders(bool enabled) async {
+    if (enabled) {
+      // Check if notifications are allowed
+      final permissionGranted = await _notificationService.areNotificationsEnabled();
+      if (!permissionGranted) {
+        await _notificationService.requestPermissions();
+        final newPermissionStatus = await _notificationService.areNotificationsEnabled();
+        if (!newPermissionStatus) {
+          // Permission denied, show message
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Notification permission is required for water reminders'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+          return;
+        }
+      }
+      
+      // Schedule reminders
+      await _notificationService.scheduleWaterReminders();
+      await _notificationService.showInstantWaterReminder();
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Water reminders enabled! You\'ll receive notifications every 2 hours.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } else {
+      // Cancel reminders
+      await _notificationService.cancelWaterReminders();
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Water reminders disabled'),
+            backgroundColor: Colors.grey,
+          ),
+        );
+      }
+    }
+    
+    setState(() {
+      _notificationsEnabled = enabled;
+    });
+  }
+
+  Future<void> _sendTestNotification() async {
+    try {
+      debugPrint('Attempting to send test notification...');
+      await _notificationService.showInstantWaterReminder();
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Test notification sent! Check your notification panel.'),
+            backgroundColor: Colors.blue,
+          ),
+        );
+      }
+      debugPrint('Test notification completed successfully');
+    } catch (e) {
+      debugPrint('Test notification failed: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to send test notification: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _loadNutritionData() async {
@@ -267,6 +356,27 @@ class _NutritionScreenState extends State<NutritionScreen> {
                   '/add-water-intake',
                 ).then((_) => _loadNutritionData());
               },
+            ),
+            ListTile(
+              leading: Icon(
+                _notificationsEnabled ? Icons.notifications_active : Icons.notifications_off,
+                color: _notificationsEnabled ? Colors.green : Colors.grey,
+              ),
+              title: Text(_notificationsEnabled ? 'Water Reminders ON' : 'Enable Water Reminders'),
+              subtitle: Text(_notificationsEnabled 
+                ? 'Reminders every 2 hours (8 AM - 10 PM)' 
+                : 'Get reminded to drink water'),
+              trailing: Switch(
+                value: _notificationsEnabled,
+                onChanged: _toggleWaterReminders,
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.notification_add, color: Colors.purple),
+              title: const Text('Test Notification'),
+              subtitle: const Text('Send a test water reminder'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: _sendTestNotification,
             ),
           ],
         ),
