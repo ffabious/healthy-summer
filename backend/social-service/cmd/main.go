@@ -20,8 +20,8 @@ func main() {
 	// Connect to database
 	db.Connect()
 
-	// Start gRPC server in a goroutine
-	go startGRPCServer()
+	// // Start gRPC server in a goroutine
+	// go startGRPCServer()
 
 	// Start HTTP server
 	startHTTPServer()

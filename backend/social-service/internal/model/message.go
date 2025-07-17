@@ -28,22 +28,22 @@ type Message struct {
 }
 
 type Conversation struct {
-	ID           uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
-	User1ID      uuid.UUID `json:"user1_id" gorm:"type:uuid;not null;index"`
-	User2ID      uuid.UUID `json:"user2_id" gorm:"type:uuid;not null;index"`
-	LastMessage  *Message  `json:"last_message,omitempty" gorm:"foreignKey:ID;references:LastMessageID"`
-	LastMessageID *uuid.UUID `json:"last_message_id" gorm:"type:uuid"`
-	CreatedAt    time.Time `json:"created_at" gorm:"not null"`
-	UpdatedAt    time.Time `json:"updated_at" gorm:"not null"`
+	ID            uuid.UUID  `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+	User1ID       uuid.UUID  `json:"user1_id" gorm:"type:uuid;not null;index"`
+	User2ID       uuid.UUID  `json:"user2_id" gorm:"type:uuid;not null;index"`
+	LastMessage   *Message   `gorm:"foreignKey:LastMessageID;references:ID"`
+	LastMessageID *uuid.UUID `gorm:"type:uuid"`
+	CreatedAt     time.Time  `json:"created_at" gorm:"not null"`
+	UpdatedAt     time.Time  `json:"updated_at" gorm:"not null"`
 }
 
 type Friend struct {
-	ID         uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
-	UserID     uuid.UUID `json:"user_id" gorm:"type:uuid;not null;index"`
-	FriendID   uuid.UUID `json:"friend_id" gorm:"type:uuid;not null;index"`
-	Status     string    `json:"status" gorm:"type:varchar(20);default:'pending';not null"` // pending, accepted, blocked
-	CreatedAt  time.Time `json:"created_at" gorm:"not null"`
-	UpdatedAt  time.Time `json:"updated_at" gorm:"not null"`
+	ID        uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+	UserID    uuid.UUID `json:"user_id" gorm:"type:uuid;not null;index"`
+	FriendID  uuid.UUID `json:"friend_id" gorm:"type:uuid;not null;index"`
+	Status    string    `json:"status" gorm:"type:varchar(20);default:'pending';not null"` // pending, accepted, blocked
+	CreatedAt time.Time `json:"created_at" gorm:"not null"`
+	UpdatedAt time.Time `json:"updated_at" gorm:"not null"`
 }
 
 // Request/Response models
