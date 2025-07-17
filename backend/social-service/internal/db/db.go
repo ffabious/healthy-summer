@@ -92,18 +92,14 @@ func Connect() {
 	if err != nil {
 		log.Fatalf("Failed to get sql.DB: %v", err)
 	}
-	_, err = sqlDB.Exec(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`)
-	if err != nil {
-		log.Printf("Failed to create uuid-ossp extension (might already exist): %v", err)
-	}
 
 	// Create schemas if they don't exist
 	schemaQueries := []string{
 		"CREATE SCHEMA IF NOT EXISTS social",
-		"CREATE SCHEMA IF NOT EXISTS nutrition", 
+		"CREATE SCHEMA IF NOT EXISTS nutrition",
 		"CREATE SCHEMA IF NOT EXISTS \"user\"", // user is a reserved keyword, needs quotes
 	}
-	
+
 	for _, query := range schemaQueries {
 		_, err = sqlDB.Exec(query)
 		if err != nil {
@@ -111,8 +107,14 @@ func Connect() {
 		}
 	}
 
-	// Set search_path for the social schema
-	_, err = sqlDB.Exec(fmt.Sprintf("SET search_path TO %s", os.Getenv("DB_SCHEMA")))
+	// Create uuid-ossp extension in public schema (available to all schemas)
+	_, err = sqlDB.Exec(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp" SCHEMA public;`)
+	if err != nil {
+		log.Printf("Failed to create uuid-ossp extension (might already exist): %v", err)
+	}
+
+	// Set search_path to include public schema for uuid functions
+	_, err = sqlDB.Exec(fmt.Sprintf("SET search_path TO %s, public", os.Getenv("DB_SCHEMA")))
 	if err != nil {
 		log.Printf("Failed to set search_path: %v", err)
 	}
