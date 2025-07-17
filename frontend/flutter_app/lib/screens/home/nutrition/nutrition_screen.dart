@@ -37,16 +37,20 @@ class _NutritionScreenState extends State<NutritionScreen> {
   Future<void> _toggleWaterReminders(bool enabled) async {
     if (enabled) {
       // Check if notifications are allowed
-      final permissionGranted = await _notificationService.areNotificationsEnabled();
+      final permissionGranted = await _notificationService
+          .areNotificationsEnabled();
       if (!permissionGranted) {
         await _notificationService.requestPermissions();
-        final newPermissionStatus = await _notificationService.areNotificationsEnabled();
+        final newPermissionStatus = await _notificationService
+            .areNotificationsEnabled();
         if (!newPermissionStatus) {
           // Permission denied, show message
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Notification permission is required for water reminders'),
+                content: Text(
+                  'Notification permission is required for water reminders',
+                ),
                 backgroundColor: Colors.orange,
               ),
             );
@@ -54,15 +58,17 @@ class _NutritionScreenState extends State<NutritionScreen> {
           return;
         }
       }
-      
+
       // Schedule reminders
       await _notificationService.scheduleWaterReminders();
       await _notificationService.showInstantWaterReminder();
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Water reminders enabled! You\'ll receive notifications every 2 hours.'),
+            content: Text(
+              'Water reminders enabled! You\'ll receive notifications every 2 hours.',
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -70,7 +76,7 @@ class _NutritionScreenState extends State<NutritionScreen> {
     } else {
       // Cancel reminders
       await _notificationService.cancelWaterReminders();
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -80,7 +86,7 @@ class _NutritionScreenState extends State<NutritionScreen> {
         );
       }
     }
-    
+
     setState(() {
       _notificationsEnabled = enabled;
     });
@@ -90,11 +96,13 @@ class _NutritionScreenState extends State<NutritionScreen> {
     try {
       debugPrint('Attempting to send test notification...');
       await _notificationService.showInstantWaterReminder();
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Test notification sent! Check your notification panel.'),
+            content: Text(
+              'Test notification sent! Check your notification panel.',
+            ),
             backgroundColor: Colors.blue,
           ),
         );
@@ -359,13 +367,21 @@ class _NutritionScreenState extends State<NutritionScreen> {
             ),
             ListTile(
               leading: Icon(
-                _notificationsEnabled ? Icons.notifications_active : Icons.notifications_off,
+                _notificationsEnabled
+                    ? Icons.notifications_active
+                    : Icons.notifications_off,
                 color: _notificationsEnabled ? Colors.green : Colors.grey,
               ),
-              title: Text(_notificationsEnabled ? 'Water Reminders ON' : 'Enable Water Reminders'),
-              subtitle: Text(_notificationsEnabled 
-                ? 'Reminders every 2 hours (8 AM - 10 PM)' 
-                : 'Get reminded to drink water'),
+              title: Text(
+                _notificationsEnabled
+                    ? 'Water Reminders ON'
+                    : 'Enable Water Reminders',
+              ),
+              subtitle: Text(
+                _notificationsEnabled
+                    ? 'Reminders every 2 hours (8 AM - 10 PM)'
+                    : 'Get reminded to drink water',
+              ),
               trailing: Switch(
                 value: _notificationsEnabled,
                 onChanged: _toggleWaterReminders,

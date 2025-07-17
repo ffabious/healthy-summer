@@ -7,7 +7,7 @@ import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize notifications (non-blocking)
   try {
     await NotificationService().initialize();
@@ -15,7 +15,7 @@ void main() async {
   } catch (e) {
     debugPrint('Failed to initialize notifications: $e');
   }
-  
+
   await _requestPermissions();
   runApp(ProviderScope(child: App()));
 }
