@@ -46,6 +46,7 @@ func main() {
 	protected.GET("/profile", handler.GetProfileHandler)
 	protected.PUT("/profile", handler.UpdateProfileHandler)
 	protected.GET("/friends", handler.GetFriendsHandler)
+	protected.GET("/friends/activities", handler.GetFriendsActivitiesHandler)
 	protected.POST("/friends/request", handler.SendFriendRequestHandler)
 	protected.GET("/friends/requests", handler.GetPendingFriendRequestsHandler)
 	protected.POST("/friends/respond", handler.RespondToFriendRequestHandler)

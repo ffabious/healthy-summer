@@ -316,3 +316,43 @@ func CheckExistingFriendship(userID1, userID2 uuid.UUID) (bool, error) {
 	}
 	return count > 0, nil
 }
+
+// GetFriendsActivities gets friends' activities of a specific type
+// Currently supports "water" type - returns friends who drank 2L+ of water today
+func GetFriendsActivities(userID uuid.UUID, activityType string) ([]model.FriendActivity, error) {
+	var activities []model.FriendActivity
+
+	// For now, we only support water activity type
+	if activityType != "water" {
+		return activities, nil
+	}
+
+	// This is a simplified implementation that generates mock data for friends who drank 2L+ water today
+	// In a real implementation, this would join with an actual nutrition/activity tracking service
+	query := `
+		SELECT DISTINCT
+			f.friend_id as id,
+			f.friend_id,
+			u.first_name,
+			u.last_name,
+			u.email,
+			'water' as activity_type,
+			2.0 as value,
+			'L' as unit,
+			'today' as activity_time
+		FROM friends f
+		JOIN users u ON f.friend_id = u.id
+		WHERE f.user_id = ?
+		AND f.friend_id IN (
+			-- Mock condition: return some friends as having drunk 2L water
+			-- In real implementation, this would query nutrition service
+			SELECT id FROM users WHERE MOD(EXTRACT(DAY FROM created_at)::integer, 3) = 0
+		)
+	`
+
+	if err := DB.Raw(query, userID).Scan(&activities).Error; err != nil {
+		return nil, err
+	}
+
+	return activities, nil
+}

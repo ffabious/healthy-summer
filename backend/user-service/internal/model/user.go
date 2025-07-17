@@ -114,3 +114,15 @@ type FriendWithDetails struct {
 	Email     string    `json:"email"`
 	CreatedAt time.Time `json:"created_at"`
 }
+
+type FriendActivity struct {
+	ID           uuid.UUID `json:"id"`
+	FriendID     uuid.UUID `json:"friend_id"`
+	FirstName    string    `json:"first_name"`
+	LastName     string    `json:"last_name"`
+	Email        string    `json:"email"`
+	ActivityType string    `json:"activity_type"`
+	Value        float64   `json:"value"`
+	Unit         string    `json:"unit"`
+	ActivityTime string    `json:"activity_time"`
+}
