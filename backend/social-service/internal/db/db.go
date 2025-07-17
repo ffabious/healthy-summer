@@ -266,8 +266,8 @@ func GetFriendsByUser(userID uuid.UUID) ([]model.FriendWithUser, error) {
 	for rows.Next() {
 		var friend model.FriendWithUser
 		err := rows.Scan(
-			&friend.ID, &friend.UserID, &friend.FriendID, &friend.Status,
-			&friend.CreatedAt, &friend.UpdatedAt, &friend.FriendName, &friend.FriendEmail,
+			&friend.ID, &friend.UserID, &friend.FriendID, &friend.CreatedAt, &friend.UpdatedAt, &friend.Status,
+			&friend.FriendName, &friend.FriendEmail,
 		)
 		if err != nil {
 			return nil, err
