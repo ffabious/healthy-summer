@@ -286,7 +286,6 @@ class EditWaterEntryScreen extends StatefulWidget {
 class _EditWaterEntryScreenState extends State<EditWaterEntryScreen> {
   final _formKey = GlobalKey<FormState>();
   final NutritionService _nutritionService = NutritionService();
-  final NotificationService _notificationService = NotificationService();
 
   late TextEditingController _volumeController;
 
@@ -319,9 +318,6 @@ class _EditWaterEntryScreenState extends State<EditWaterEntryScreen> {
       );
 
       await _nutritionService.updateWaterEntry(widget.waterEntry.id, updatedWaterEntry);
-      
-      // Record water intake for notification tracking since user is updating their intake
-      await _notificationService.recordWaterIntake();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

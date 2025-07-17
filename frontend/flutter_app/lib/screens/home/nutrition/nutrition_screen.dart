@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/widgets/stat_row.dart';
-import 'package:flutter_app/widgets/water_reminder_status_widget.dart';
 import 'package:flutter_app/services/services.dart';
 import 'package:flutter_app/models/models.dart';
-import 'water_reminder_settings_screen.dart';
 
 class NutritionScreen extends StatefulWidget {
   const NutritionScreen({super.key});
@@ -145,8 +143,6 @@ class _NutritionScreenState extends State<NutritionScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildTodaysSummary(),
-          const SizedBox(height: 20),
-          const WaterReminderStatusWidget(),
           const SizedBox(height: 30),
           _buildQuickActions(),
           const SizedBox(height: 30),
@@ -270,19 +266,6 @@ class _NutritionScreenState extends State<NutritionScreen> {
                   context,
                   '/add-water-intake',
                 ).then((_) => _loadNutritionData());
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.notifications_active, color: Colors.purple),
-              title: const Text('Water Reminder Settings'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const WaterReminderSettingsScreen(),
-                  ),
-                );
               },
             ),
           ],
