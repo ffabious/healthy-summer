@@ -132,7 +132,7 @@ func MarkMessagesAsRead(messageIDs []uuid.UUID, userID uuid.UUID) error {
 // Conversation operations
 func GetOrCreateConversation(user1ID, user2ID uuid.UUID) (*model.Conversation, error) {
 	var conversation model.Conversation
-	
+
 	// Try to find existing conversation (either direction)
 	err := DB.Where(
 		"(user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?)",
@@ -189,7 +189,7 @@ func GetConversationsByUser(userID uuid.UUID) ([]model.ConversationWithUser, err
 	for rows.Next() {
 		var conv model.ConversationWithUser
 		err := rows.Scan(
-			&conv.ID, &conv.User1ID, &conv.User2ID, &conv.LastMessageID, 
+			&conv.ID, &conv.User1ID, &conv.User2ID, &conv.LastMessageID,
 			&conv.CreatedAt, &conv.UpdatedAt, &conv.FriendName, &conv.FriendEmail,
 		)
 		if err != nil {
@@ -298,7 +298,7 @@ func GetFriendsActivityFeed(userID uuid.UUID) ([]model.FeedItem, error) {
 	}
 
 	// For each friend, check their activities for today
-	today := time.Now().Truncate(24 * time.Hour)
+	today := time.Now().UTC().Truncate(24 * time.Hour)
 	tomorrow := today.Add(24 * time.Hour)
 
 	for _, friend := range friends {
@@ -315,7 +315,7 @@ func GetFriendsActivityFeed(userID uuid.UUID) ([]model.FeedItem, error) {
 		if waterFeedItem != nil {
 			feedItems = append(feedItems, *waterFeedItem)
 		}
-		
+
 		// Future: Add other activity checks here
 		// exerciseFeedItem := checkExerciseActivity(friendUserID, friend.FriendName, today, tomorrow)
 		// mealFeedItem := checkMealActivity(friendUserID, friend.FriendName, today, tomorrow)
@@ -341,8 +341,8 @@ func checkWaterIntakeActivity(userID uuid.UUID, userName string, today, tomorrow
 	// If friend drank 2L or more (2000ml), create feed item
 	if totalWater >= 2000 {
 		return &model.FeedItem{
-			UserID:      userID,
-			UserName:    userName,
+			UserID:       userID,
+			UserName:     userName,
 			ActivityType: "water_intake",
 			ActivityData: map[string]interface{}{
 				"volume_ml": totalWater,
