@@ -8,6 +8,7 @@ import (
 
 	"github.com/ffabious/healthy-summer/social-service/internal/auth"
 	"github.com/ffabious/healthy-summer/social-service/internal/db"
+
 	grpcServer "github.com/ffabious/healthy-summer/social-service/internal/grpc"
 	"github.com/ffabious/healthy-summer/social-service/internal/handler"
 	pb "github.com/ffabious/healthy-summer/social-service/proto"
@@ -15,6 +16,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
 
+	_ "github.com/ffabious/healthy-summer/social-service/docs"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
