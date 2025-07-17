@@ -361,7 +361,10 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
                 ),
                 child: _isLoadingSteps
                     ? const CircularProgressIndicator()
-                    : AnimatedStepCounterArc(steps: 11000, goal: 10000),
+                    : AnimatedStepCounterArc(
+                        steps: _currentSteps + 10000,
+                        goal: 10000,
+                      ),
               ),
             ),
             const SizedBox(height: 24),

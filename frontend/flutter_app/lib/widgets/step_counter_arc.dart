@@ -34,7 +34,7 @@ class AnimatedStepCounterArcState extends State<AnimatedStepCounterArc>
 
     _celebrationController = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 800),
+      duration: Duration(milliseconds: 2500),
     );
 
     final progress = (widget.steps / widget.goal).clamp(0.0, 1.0);
@@ -48,10 +48,7 @@ class AnimatedStepCounterArcState extends State<AnimatedStepCounterArc>
 
     _celebrationAnimation =
         Tween<double>(begin: 0, end: 1).animate(
-          CurvedAnimation(
-            parent: _celebrationController,
-            curve: Curves.elasticOut,
-          ),
+          CurvedAnimation(parent: _celebrationController, curve: Curves.linear),
         )..addListener(() {
           setState(() {});
         });
@@ -119,61 +116,9 @@ class AnimatedStepCounterArcState extends State<AnimatedStepCounterArc>
           AnimatedBuilder(
             animation: _celebrationAnimation,
             builder: (context, child) {
-              return Transform.scale(
-                scale: 1 + (_celebrationAnimation.value * 0.6),
-                child: Opacity(
-                  opacity: (1 - _celebrationAnimation.value).clamp(0.0, 1.0),
-                  child: Container(
-                    width: 160,
-                    height: 160,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.orange, width: 6),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.orange.withOpacity(0.6),
-                          blurRadius: 20,
-                          spreadRadius: 5,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        if (_showCelebration)
-          AnimatedBuilder(
-            animation: _celebrationAnimation,
-            builder: (context, child) {
-              return Transform.rotate(
-                angle: _celebrationAnimation.value * 4 * pi,
-                child: Icon(
-                  Icons.star,
-                  color: Colors.amber.withOpacity(
-                    (1 - _celebrationAnimation.value).clamp(0.0, 1.0),
-                  ),
-                  size: 60 + (_celebrationAnimation.value * 40),
-                ),
-              );
-            },
-          ),
-        if (_showCelebration)
-          AnimatedBuilder(
-            animation: _celebrationAnimation,
-            builder: (context, child) {
-              return Transform.scale(
-                scale: 1 + (_celebrationAnimation.value * 0.8),
-                child: Transform.rotate(
-                  angle: -_celebrationAnimation.value * 3 * pi,
-                  child: Icon(
-                    Icons.celebration,
-                    color: Colors.deepOrange.withOpacity(
-                      (1 - _celebrationAnimation.value).clamp(0.0, 1.0),
-                    ),
-                    size: 50 + (_celebrationAnimation.value * 30),
-                  ),
-                ),
+              return CustomPaint(
+                size: Size(200, 200),
+                painter: _FireworksPainter(_celebrationAnimation.value),
               );
             },
           ),
@@ -222,6 +167,74 @@ class StepCounterArc extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _FireworksPainter extends CustomPainter {
+  final double progress;
+
+  _FireworksPainter(this.progress);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final random = Random(42); // Fixed seed for consistent animation
+
+    // Create multiple firework bursts
+    for (int i = 0; i < 6; i++) {
+      final angle = (i * pi / 3) + (progress * 2 * pi);
+      final burstProgress = (progress * 3).clamp(0.0, 1.0);
+
+      // Create particles for each burst
+      for (int j = 0; j < 8; j++) {
+        final particleAngle = angle + (j * pi / 4);
+        final distance = burstProgress * (80 + random.nextDouble() * 60);
+        final x = center.dx + cos(particleAngle) * distance;
+        final y = center.dy + sin(particleAngle) * distance;
+
+        // Fade out particles over time
+        final opacity = (1 - burstProgress).clamp(0.0, 1.0);
+
+        // Different colors for variety
+        final colors = [
+          Colors.orange,
+          Colors.yellow,
+          Colors.red,
+          Colors.pink,
+          Colors.purple,
+          Colors.blue,
+        ];
+
+        final paint = Paint()
+          ..color = colors[i % colors.length].withOpacity(opacity)
+          ..style = PaintingStyle.fill;
+
+        // Draw particle as small circle
+        canvas.drawCircle(
+          Offset(x, y),
+          6 - (burstProgress * 3), // Shrink particles over time
+          paint,
+        );
+
+        // Add trailing effect
+        if (burstProgress > 0.3) {
+          final trailPaint = Paint()
+            ..color = colors[i % colors.length].withOpacity(opacity * 0.3)
+            ..style = PaintingStyle.fill;
+
+          final trailDistance = distance * 0.7;
+          final trailX = center.dx + cos(particleAngle) * trailDistance;
+          final trailY = center.dy + sin(particleAngle) * trailDistance;
+
+          canvas.drawCircle(Offset(trailX, trailY), 3, trailPaint);
+        }
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _FireworksPainter oldDelegate) {
+    return oldDelegate.progress != progress;
   }
 }
 
