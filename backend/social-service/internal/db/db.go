@@ -253,7 +253,7 @@ func GetFriendsByUser(userID uuid.UUID) ([]model.FriendWithUser, error) {
 		FROM friends f
 		LEFT JOIN users u1 ON f.user_id = u1.id
 		LEFT JOIN users u2 ON f.friend_id = u2.id
-		WHERE (f.user_id = $1 OR f.friend_id = $1) AND f.status = 'accepted'
+		WHERE (f.user_id = $1 OR f.friend_id = $1)
 		ORDER BY f.created_at DESC
 	`
 
