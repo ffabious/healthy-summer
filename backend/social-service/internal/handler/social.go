@@ -214,7 +214,14 @@ func MarkAsRead(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Messages marked as read"})
 }
 
-// GetFeed handles HTTP GET requests to fetch activity feed
+// @Summary GetFeed
+// @Description Get user's activity feed
+// @Tags Feed
+// @Accept json
+// @Produce json
+// @Success 200 {object} model.GetFeedResponse
+// @Router /api/feed [get]
+// @Security BearerAuth
 func GetFeed(c *gin.Context) {
 	userID, err := auth.GetUserIDFromContext(c)
 	if err != nil {
