@@ -14,6 +14,9 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
+
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func main() {
@@ -57,6 +60,9 @@ func startHTTPServer() {
 	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
 	config.AllowHeaders = []string{"*"}
 	r.Use(cors.New(config))
+
+	// Swagger documentation
+	r.GET("/api/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Public routes
 	r.GET("/health", func(c *gin.Context) {
