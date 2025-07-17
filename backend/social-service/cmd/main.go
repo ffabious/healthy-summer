@@ -76,7 +76,7 @@ func startHTTPServer() {
 	r.Any("/api/socials/*path", gin.WrapF(handler.SocialHandler))
 
 	// Protected routes
-	api := r.Group("/api", auth.AuthMiddleware())
+	api := r.Group("/api", auth.JWTMiddleware())
 	{
 		// Message routes
 		api.POST("/messages", handler.SendMessage)
