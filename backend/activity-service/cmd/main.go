@@ -45,7 +45,7 @@ func main() {
 	protected.GET("", handler.GetActivitiesHandler)
 	protected.PUT("/:id", handler.UpdateActivityHandler)
 	protected.DELETE("/:id", handler.DeleteActivityHandler)
-	protected.GET("/stats/:user_id", handler.GetActivityStatsHandler)
+	protected.GET("/stats", handler.GetCurrentUserActivityStatsHandler)
 	protected.POST("/steps", handler.PostStepEntryHandler)
 	protected.GET("/analytics/:user_id", handler.GetActivityAnalyticsHandler)
 

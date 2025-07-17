@@ -72,15 +72,20 @@ func GetActivitiesHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, activities)
 }
 
-// @Summary Get Activity Stats
-// @Description Get activity stats for a user
+// @Summary Get Current User Activity Stats
+// @Description Get activity stats for the currently authenticated user
 // @Tags activities
 // @Produce json
-// @Param user_id path string true "User ID"
 // @Success 200 {object} model.ActivityStats
-// @Router /api/activities/stats/{user_id} [get]
-func GetActivityStatsHandler(c *gin.Context) {
-	user_id := c.Param("user_id")
+// @Router /api/activities/stats [get]
+// @Security BearerAuth
+func GetCurrentUserActivityStatsHandler(c *gin.Context) {
+	user_id, err := auth.ExtractUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized", "details": err.Error()})
+		return
+	}
+
 	stats, err := db.GetActivityStatsByUserID(user_id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Activity stats not found"})
