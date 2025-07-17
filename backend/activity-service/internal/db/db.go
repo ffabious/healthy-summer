@@ -189,7 +189,8 @@ func CreateStepEntry(stepEntry *model.StepEntry) error {
 
 func GetStepEntriesByUserID(userID string, days int) ([]model.StepEntry, error) {
 	var stepEntries []model.StepEntry
-	if err := DB.Where("user_id = ? AND date >= CURRENT_DATE - INTERVAL '? days'", userID, days-1).
+	query := fmt.Sprintf("user_id = ? AND date >= CURRENT_DATE - INTERVAL '%d days'", days-1)
+	if err := DB.Where(query, userID).
 		Order("date DESC").
 		Find(&stepEntries).Error; err != nil {
 		return nil, fmt.Errorf("failed to get step entries for user %s: %w", userID, err)
