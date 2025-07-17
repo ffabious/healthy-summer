@@ -352,13 +352,13 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
           children: [
             // Steps Summary
             Center(
-              child: Container(
+              child: SizedBox(
                 width: 200,
                 height: 200,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.orange, width: 8),
-                ),
+                // decoration: BoxDecoration(
+                //   shape: BoxShape.circle,
+                //   border: Border.all(color: Colors.orange, width: 10),
+                // ),
                 child: _isLoadingSteps
                     ? const CircularProgressIndicator()
                     : AnimatedStepCounterArc(
