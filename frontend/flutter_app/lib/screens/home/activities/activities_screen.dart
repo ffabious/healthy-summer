@@ -17,6 +17,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
   Timer? _stepTimer;
   Timer? _stepSyncTimer;
   int _currentSteps = 0;
+  int _lastSegmentSteps = 0; // Track steps at the start of current segment
   bool _isLoadingSteps = true;
 
   // Activities state
@@ -78,6 +79,9 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
   void _setupStepSyncTimer() {
     final now = DateTime.now();
 
+    // Initialize segment tracking when setting up timer
+    _lastSegmentSteps = _currentSteps;
+
     // Calculate next sync time (every 6 hours: 0, 6, 12, 18)
     final currentHour = now.hour;
     int nextSyncHour;
@@ -135,11 +139,11 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
         segmentName = "6pm-12am";
       }
 
-      // Since we can't get steps for specific time ranges, we'll use current steps
-      // This is a simplified approach - in a real app you'd want to store incremental data
-      final segmentSteps = _currentSteps > 0
-          ? (_currentSteps / 4).round()
-          : 0; // Rough estimate
+      // Calculate steps for this 6-hour segment only
+      final segmentSteps = _currentSteps - _lastSegmentSteps;
+
+      // Update the tracking for next segment
+      _lastSegmentSteps = _currentSteps;
 
       if (segmentSteps > 0) {
         final stepEntry = PostStepEntryRequestModel(
@@ -148,10 +152,12 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
         );
 
         debugPrint(
-          '📊 Submitting $segmentSteps steps for segment $segmentName',
+          '📊 Submitting $segmentSteps steps for segment $segmentName (total: $_currentSteps, previous: ${_currentSteps - segmentSteps})',
         );
         await ActivityService().createStepEntry(stepEntry);
         debugPrint('✅ Successfully submitted step segment for $segmentName');
+      } else {
+        debugPrint('ℹ️ No new steps to submit for segment $segmentName');
       }
     } catch (e) {
       debugPrint('❌ Error submitting step segment: $e');
