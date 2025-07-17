@@ -5,13 +5,12 @@ class WaterReminderStatusWidget extends StatefulWidget {
   const WaterReminderStatusWidget({super.key});
 
   @override
-  State<WaterReminderStatusWidget> createState() =>
-      _WaterReminderStatusWidgetState();
+  State<WaterReminderStatusWidget> createState() => _WaterReminderStatusWidgetState();
 }
 
 class _WaterReminderStatusWidgetState extends State<WaterReminderStatusWidget> {
   final NotificationService _notificationService = NotificationService();
-
+  
   bool _remindersEnabled = false;
   int _reminderInterval = 120;
   DateTime? _lastWaterIntake;
@@ -64,7 +63,7 @@ class _WaterReminderStatusWidgetState extends State<WaterReminderStatusWidget> {
       final remainingTime = intervalDuration - timeSinceLastIntake;
       final hours = remainingTime.inHours;
       final minutes = remainingTime.inMinutes % 60;
-
+      
       if (hours > 0) {
         return 'Next reminder in ${hours}h ${minutes}m';
       } else {
@@ -141,7 +140,11 @@ class _WaterReminderStatusWidgetState extends State<WaterReminderStatusWidget> {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            Icon(_getStatusIcon(), color: _getStatusColor(), size: 20),
+            Icon(
+              _getStatusIcon(),
+              color: _getStatusColor(),
+              size: 20,
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -156,7 +159,10 @@ class _WaterReminderStatusWidgetState extends State<WaterReminderStatusWidget> {
               const SizedBox(width: 8),
               Text(
                 '${(_reminderInterval / 60).toStringAsFixed(_reminderInterval % 60 == 0 ? 0 : 1)}h interval',
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                ),
               ),
             ],
           ],

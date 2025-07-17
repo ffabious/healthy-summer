@@ -10,7 +10,7 @@ class NotificationDemoScreen extends StatefulWidget {
 
 class _NotificationDemoScreenState extends State<NotificationDemoScreen> {
   final NotificationService _notificationService = NotificationService();
-
+  
   bool _remindersEnabled = false;
   int _reminderInterval = 120;
   DateTime? _lastWaterIntake;
@@ -45,13 +45,11 @@ class _NotificationDemoScreenState extends State<NotificationDemoScreen> {
   Future<void> _testNotification() async {
     try {
       await _notificationService.showTestNotification();
-
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(
-              'Test notification sent! Check your notification panel.',
-            ),
+            content: Text('Test notification sent! Check your notification panel.'),
             backgroundColor: Colors.green,
           ),
         );
@@ -59,7 +57,10 @@ class _NotificationDemoScreenState extends State<NotificationDemoScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -68,7 +69,7 @@ class _NotificationDemoScreenState extends State<NotificationDemoScreen> {
   Future<void> _testWaterReminder() async {
     try {
       await _notificationService.showWaterReminderNotification();
-
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -80,7 +81,10 @@ class _NotificationDemoScreenState extends State<NotificationDemoScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -90,7 +94,7 @@ class _NotificationDemoScreenState extends State<NotificationDemoScreen> {
     try {
       await _notificationService.recordWaterIntake();
       await _loadStatus(); // Reload status
-
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -102,7 +106,10 @@ class _NotificationDemoScreenState extends State<NotificationDemoScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -112,7 +119,7 @@ class _NotificationDemoScreenState extends State<NotificationDemoScreen> {
     try {
       await _notificationService.setWaterRemindersEnabled(true);
       await _loadStatus();
-
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -124,7 +131,10 @@ class _NotificationDemoScreenState extends State<NotificationDemoScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -134,7 +144,7 @@ class _NotificationDemoScreenState extends State<NotificationDemoScreen> {
     try {
       await _notificationService.setWaterRemindersEnabled(false);
       await _loadStatus();
-
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -146,7 +156,10 @@ class _NotificationDemoScreenState extends State<NotificationDemoScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -154,10 +167,10 @@ class _NotificationDemoScreenState extends State<NotificationDemoScreen> {
 
   String _formatLastIntake() {
     if (_lastWaterIntake == null) return 'Never';
-
+    
     final now = DateTime.now();
     final difference = now.difference(_lastWaterIntake!);
-
+    
     if (difference.inMinutes < 60) {
       return '${difference.inMinutes} minutes ago';
     } else if (difference.inHours < 24) {
@@ -171,8 +184,12 @@ class _NotificationDemoScreenState extends State<NotificationDemoScreen> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Notification Demo')),
-        body: const Center(child: CircularProgressIndicator()),
+        appBar: AppBar(
+          title: const Text('Notification Demo'),
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
       );
     }
 
@@ -202,9 +219,9 @@ class _NotificationDemoScreenState extends State<NotificationDemoScreen> {
                     Row(
                       children: [
                         Icon(
-                          _remindersEnabled
-                              ? Icons.notifications_active
-                              : Icons.notifications_off,
+                          _remindersEnabled 
+                            ? Icons.notifications_active 
+                            : Icons.notifications_off,
                           color: _remindersEnabled ? Colors.green : Colors.grey,
                         ),
                         const SizedBox(width: 8),
@@ -212,17 +229,13 @@ class _NotificationDemoScreenState extends State<NotificationDemoScreen> {
                           'Reminders: ${_remindersEnabled ? "ON" : "OFF"}',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: _remindersEnabled
-                                ? Colors.green
-                                : Colors.grey,
+                            color: _remindersEnabled ? Colors.green : Colors.grey,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      'Interval: ${(_reminderInterval / 60).toStringAsFixed(1)} hours',
-                    ),
+                    Text('Interval: ${(_reminderInterval / 60).toStringAsFixed(1)} hours'),
                     const SizedBox(height: 8),
                     Text('Last water intake: ${_formatLastIntake()}'),
                   ],
@@ -244,7 +257,7 @@ class _NotificationDemoScreenState extends State<NotificationDemoScreen> {
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 16),
-
+                    
                     ElevatedButton.icon(
                       onPressed: _testNotification,
                       icon: const Icon(Icons.bug_report),
@@ -254,9 +267,9 @@ class _NotificationDemoScreenState extends State<NotificationDemoScreen> {
                         foregroundColor: Colors.white,
                       ),
                     ),
-
+                    
                     const SizedBox(height: 12),
-
+                    
                     ElevatedButton.icon(
                       onPressed: _testWaterReminder,
                       icon: const Icon(Icons.water_drop),
@@ -266,9 +279,9 @@ class _NotificationDemoScreenState extends State<NotificationDemoScreen> {
                         foregroundColor: Colors.white,
                       ),
                     ),
-
+                    
                     const SizedBox(height: 12),
-
+                    
                     ElevatedButton.icon(
                       onPressed: _recordWaterIntake,
                       icon: const Icon(Icons.check),
@@ -297,7 +310,7 @@ class _NotificationDemoScreenState extends State<NotificationDemoScreen> {
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 16),
-
+                    
                     if (!_remindersEnabled) ...[
                       ElevatedButton.icon(
                         onPressed: _startReminders,
@@ -319,9 +332,9 @@ class _NotificationDemoScreenState extends State<NotificationDemoScreen> {
                         ),
                       ),
                     ],
-
+                    
                     const SizedBox(height: 12),
-
+                    
                     ElevatedButton.icon(
                       onPressed: _loadStatus,
                       icon: const Icon(Icons.refresh),

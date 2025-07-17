@@ -33,22 +33,21 @@ class NotificationService {
 
       const DarwinInitializationSettings initializationSettingsIOS =
           DarwinInitializationSettings(
-            requestAlertPermission: true,
-            requestBadgePermission: true,
-            requestSoundPermission: true,
-          );
+        requestAlertPermission: true,
+        requestBadgePermission: true,
+        requestSoundPermission: true,
+      );
 
       const InitializationSettings initializationSettings =
           InitializationSettings(
-            android: initializationSettingsAndroid,
-            iOS: initializationSettingsIOS,
-          );
+        android: initializationSettingsAndroid,
+        iOS: initializationSettingsIOS,
+      );
 
-      final bool? initialized = await _flutterLocalNotificationsPlugin
-          .initialize(
-            initializationSettings,
-            onDidReceiveNotificationResponse: _onNotificationTapped,
-          );
+      final bool? initialized = await _flutterLocalNotificationsPlugin.initialize(
+        initializationSettings,
+        onDidReceiveNotificationResponse: _onNotificationTapped,
+      );
 
       if (initialized != true) {
         debugPrint('⚠️ Failed to initialize local notifications');
@@ -59,18 +58,19 @@ class NotificationService {
       if (defaultTargetPlatform == TargetPlatform.iOS) {
         await _flutterLocalNotificationsPlugin
             .resolvePlatformSpecificImplementation<
-              IOSFlutterLocalNotificationsPlugin
-            >()
-            ?.requestPermissions(alert: true, badge: true, sound: true);
+                IOSFlutterLocalNotificationsPlugin>()
+            ?.requestPermissions(
+              alert: true,
+              badge: true,
+              sound: true,
+            );
       }
 
       // Request permissions for Android 13+
       if (defaultTargetPlatform == TargetPlatform.android) {
         final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
-            _flutterLocalNotificationsPlugin
-                .resolvePlatformSpecificImplementation<
-                  AndroidFlutterLocalNotificationsPlugin
-                >();
+            _flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin>();
 
         await androidImplementation?.requestNotificationsPermission();
       }
@@ -91,7 +91,7 @@ class NotificationService {
 
   void _onNotificationTapped(NotificationResponse notificationResponse) {
     debugPrint('Notification tapped: ${notificationResponse.payload}');
-
+    
     if (notificationResponse.id == _waterReminderNotificationId) {
       // Handle water reminder notification tap
       // You could navigate to the water intake screen here
@@ -113,15 +113,14 @@ class NotificationService {
       return;
     }
 
-    debugPrint(
-      'Starting water reminders with $intervalMinutes minute interval',
-    );
+    debugPrint('Starting water reminders with $intervalMinutes minute interval');
 
-    _waterReminderTimer = Timer.periodic(Duration(minutes: intervalMinutes), (
-      timer,
-    ) async {
-      await _checkAndShowWaterReminder();
-    });
+    _waterReminderTimer = Timer.periodic(
+      Duration(minutes: intervalMinutes),
+      (timer) async {
+        await _checkAndShowWaterReminder();
+      },
+    );
 
     // Also check immediately
     await _checkAndShowWaterReminder();
@@ -131,25 +130,19 @@ class NotificationService {
     _waterReminderTimer?.cancel();
     if (_isInitialized) {
       try {
-        await _flutterLocalNotificationsPlugin.cancel(
-          _waterReminderNotificationId,
-        );
+        await _flutterLocalNotificationsPlugin.cancel(_waterReminderNotificationId);
         debugPrint('Water reminders stopped and notification cancelled');
       } catch (e) {
         debugPrint('Warning: Failed to cancel water reminder notification: $e');
       }
     } else {
-      debugPrint(
-        'Water reminders stopped (notification service not initialized)',
-      );
+      debugPrint('Water reminders stopped (notification service not initialized)');
     }
   }
 
   Future<void> _checkAndShowWaterReminder() async {
     try {
-      final lastWaterIntakeStr = await _secureStorage.read(
-        key: _lastWaterIntakeKey,
-      );
+      final lastWaterIntakeStr = await _secureStorage.read(key: _lastWaterIntakeKey);
       final now = DateTime.now();
       final intervalMinutes = await getReminderInterval();
 
@@ -166,9 +159,7 @@ class NotificationService {
       if (timeSinceLastIntake.inMinutes >= intervalMinutes) {
         await showWaterReminderNotification();
       } else {
-        debugPrint(
-          'Water intake within interval. Next reminder in ${intervalMinutes - timeSinceLastIntake.inMinutes} minutes',
-        );
+        debugPrint('Water intake within interval. Next reminder in ${intervalMinutes - timeSinceLastIntake.inMinutes} minutes');
       }
     } catch (e) {
       debugPrint('Error checking water reminder: $e');
@@ -188,25 +179,24 @@ class NotificationService {
     ];
 
     final random = Random();
-    final message =
-        motivationalMessages[random.nextInt(motivationalMessages.length)];
+    final message = motivationalMessages[random.nextInt(motivationalMessages.length)];
 
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
-          'water_reminders',
-          'Water Intake Reminders',
-          channelDescription: 'Notifications to remind you to drink water',
-          importance: Importance.high,
-          priority: Priority.high,
-          icon: '@mipmap/ic_launcher',
-        );
+      'water_reminders',
+      'Water Intake Reminders',
+      channelDescription: 'Notifications to remind you to drink water',
+      importance: Importance.high,
+      priority: Priority.high,
+      icon: '@mipmap/ic_launcher',
+    );
 
     const DarwinNotificationDetails iOSPlatformChannelSpecifics =
         DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-        );
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
 
     const NotificationDetails platformChannelSpecifics = NotificationDetails(
       android: androidPlatformChannelSpecifics,
@@ -228,30 +218,20 @@ class NotificationService {
   Future<void> recordWaterIntake() async {
     try {
       final now = DateTime.now();
-      await _secureStorage.write(
-        key: _lastWaterIntakeKey,
-        value: now.toIso8601String(),
-      );
+      await _secureStorage.write(key: _lastWaterIntakeKey, value: now.toIso8601String());
       debugPrint('Water intake recorded at: ${now.toIso8601String()}');
-
+      
       // Only try to cancel notification if the service is initialized and available
       if (_isInitialized) {
         try {
           // Check if the plugin is actually available before calling cancel
-          final pendingNotifications = await _flutterLocalNotificationsPlugin
-              .pendingNotificationRequests();
-          if (pendingNotifications.any(
-            (notification) => notification.id == _waterReminderNotificationId,
-          )) {
-            await _flutterLocalNotificationsPlugin.cancel(
-              _waterReminderNotificationId,
-            );
+          final pendingNotifications = await _flutterLocalNotificationsPlugin.pendingNotificationRequests();
+          if (pendingNotifications.any((notification) => notification.id == _waterReminderNotificationId)) {
+            await _flutterLocalNotificationsPlugin.cancel(_waterReminderNotificationId);
             debugPrint('Cancelled water reminder notification');
           }
         } catch (e) {
-          debugPrint(
-            'Warning: Failed to cancel notification (plugin may not be available): $e',
-          );
+          debugPrint('Warning: Failed to cancel notification (plugin may not be available): $e');
           // Don't throw, this is not critical - water intake recording should still work
         }
       }
@@ -260,14 +240,9 @@ class NotificationService {
       // Still try to record the time even if notification operations fail
       try {
         final now = DateTime.now();
-        await _secureStorage.write(
-          key: _lastWaterIntakeKey,
-          value: now.toIso8601String(),
-        );
+        await _secureStorage.write(key: _lastWaterIntakeKey, value: now.toIso8601String());
       } catch (storageError) {
-        debugPrint(
-          'Critical error: Failed to save water intake time: $storageError',
-        );
+        debugPrint('Critical error: Failed to save water intake time: $storageError');
         rethrow;
       }
     }
@@ -276,8 +251,7 @@ class NotificationService {
   // Settings methods
   Future<bool> areWaterRemindersEnabled() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_notificationsEnabledKey) ??
-        true; // Default to enabled
+    return prefs.getBool(_notificationsEnabledKey) ?? true; // Default to enabled
   }
 
   Future<void> setWaterRemindersEnabled(bool enabled) async {
@@ -293,8 +267,7 @@ class NotificationService {
 
   Future<int> getReminderInterval() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt(_reminderIntervalKey) ??
-        120; // Default to 2 hours (120 minutes)
+    return prefs.getInt(_reminderIntervalKey) ?? 120; // Default to 2 hours (120 minutes)
   }
 
   Future<void> setReminderInterval(int minutes) async {
@@ -309,11 +282,9 @@ class NotificationService {
 
   // Get the last water intake time for display purposes
   Future<DateTime?> getLastWaterIntakeTime() async {
-    final lastWaterIntakeStr = await _secureStorage.read(
-      key: _lastWaterIntakeKey,
-    );
+    final lastWaterIntakeStr = await _secureStorage.read(key: _lastWaterIntakeKey);
     if (lastWaterIntakeStr == null) return null;
-
+    
     try {
       return DateTime.parse(lastWaterIntakeStr);
     } catch (e) {
@@ -336,19 +307,19 @@ class NotificationService {
     try {
       const AndroidNotificationDetails androidPlatformChannelSpecifics =
           AndroidNotificationDetails(
-            'test_notifications',
-            'Test Notifications',
-            channelDescription: 'Test notifications for debugging',
-            importance: Importance.high,
-            priority: Priority.high,
-          );
+        'test_notifications',
+        'Test Notifications',
+        channelDescription: 'Test notifications for debugging',
+        importance: Importance.high,
+        priority: Priority.high,
+      );
 
       const DarwinNotificationDetails iOSPlatformChannelSpecifics =
           DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-          );
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      );
 
       const NotificationDetails platformChannelSpecifics = NotificationDetails(
         android: androidPlatformChannelSpecifics,
@@ -388,16 +359,13 @@ class NotificationService {
       // Check Android notification permissions
       if (defaultTargetPlatform == TargetPlatform.android) {
         final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
-            _flutterLocalNotificationsPlugin
-                .resolvePlatformSpecificImplementation<
-                  AndroidFlutterLocalNotificationsPlugin
-                >();
+            _flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin>();
 
         if (androidImplementation != null) {
-          final bool? permissionGranted = await androidImplementation
-              .areNotificationsEnabled();
+          final bool? permissionGranted = await androidImplementation.areNotificationsEnabled();
           debugPrint('Android notifications enabled: $permissionGranted');
-
+          
           if (permissionGranted == false) {
             debugPrint('Android notification permissions not granted');
             return false;
