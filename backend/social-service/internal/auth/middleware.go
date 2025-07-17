@@ -58,16 +58,23 @@ func AuthMiddleware() gin.HandlerFunc {
 	}
 }
 
-func GetUserIDFromContext(c *gin.Context) (uuid.UUID, error) {
-	userID, exists := c.Get("userID")
-	if !exists {
-		return uuid.Nil, fmt.Errorf("user ID not found in context")
+func ExtractUserID(c *gin.Context) (string, error) {
+	authHeader := c.GetHeader("Authorization")
+	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+		return "", fmt.Errorf("missing or invalid token")
 	}
-
-	id, ok := userID.(uuid.UUID)
+	tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
+	token, _, err := new(jwt.Parser).ParseUnverified(tokenStr, jwt.MapClaims{})
+	if err != nil {
+		return "", fmt.Errorf("failed to parse token: %w", err)
+	}
+	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return uuid.Nil, fmt.Errorf("invalid user ID type")
+		return "", fmt.Errorf("invalid claims")
 	}
-
-	return id, nil
+	user_id, ok := claims["user_id"].(string)
+	if !ok || user_id == "" {
+		return "", fmt.Errorf("invalid or missing user ID in claims")
+	}
+	return user_id, nil
 }

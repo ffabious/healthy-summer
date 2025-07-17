@@ -20,7 +20,7 @@ func SendMessage(c *gin.Context) {
 		return
 	}
 
-	senderID, err := auth.GetUserIDFromContext(c)
+	senderID, err := auth.ExtractUserID(c)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user context"})
 		return
@@ -28,7 +28,7 @@ func SendMessage(c *gin.Context) {
 
 	// Create message
 	message := &model.Message{
-		SenderID:    senderID,
+		SenderID:    uuid.MustParse(senderID),
 		ReceiverID:  req.ReceiverID,
 		Content:     req.Content,
 		MessageType: req.MessageType,
@@ -48,7 +48,7 @@ func SendMessage(c *gin.Context) {
 	}
 
 	// Update conversation
-	conversation, err := db.GetOrCreateConversation(senderID, req.ReceiverID)
+	conversation, err := db.GetOrCreateConversation(uuid.MustParse(senderID), req.ReceiverID)
 	if err == nil {
 		db.UpdateConversationLastMessage(conversation.ID, message.ID)
 	}
@@ -58,7 +58,7 @@ func SendMessage(c *gin.Context) {
 
 // GetMessages handles HTTP GET requests to retrieve messages
 func GetMessages(c *gin.Context) {
-	userID, err := auth.GetUserIDFromContext(c)
+	userID, err := auth.ExtractUserID(c)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user context"})
 		return
@@ -86,14 +86,14 @@ func GetMessages(c *gin.Context) {
 	}
 
 	// Get messages
-	messages, err := db.GetMessagesByConversation(userID, friendID, limit, offset)
+	messages, err := db.GetMessagesByConversation(uuid.MustParse(userID), friendID, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve messages", "details": err.Error()})
 		return
 	}
 
 	// Get total count
-	total, err := db.GetMessageCountByConversation(userID, friendID)
+	total, err := db.GetMessageCountByConversation(uuid.MustParse(userID), friendID)
 	if err != nil {
 		total = 0
 	}
@@ -106,13 +106,13 @@ func GetMessages(c *gin.Context) {
 
 // GetConversations handles HTTP GET requests to retrieve user's conversations
 func GetConversations(c *gin.Context) {
-	userID, err := auth.GetUserIDFromContext(c)
+	userID, err := auth.ExtractUserID(c)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user context"})
 		return
 	}
 
-	conversations, err := db.GetConversationsByUser(userID)
+	conversations, err := db.GetConversationsByUser(uuid.MustParse(userID))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve conversations", "details": err.Error()})
 		return
@@ -129,7 +129,7 @@ func SendFriendRequest(c *gin.Context) {
 		return
 	}
 
-	userID, err := auth.GetUserIDFromContext(c)
+	userID, err := auth.ExtractUserID(c)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user context"})
 		return
@@ -143,7 +143,7 @@ func SendFriendRequest(c *gin.Context) {
 	}
 
 	// Create friend request
-	friendRequest, err := db.CreateFriendRequest(userID, friend.ID)
+	friendRequest, err := db.CreateFriendRequest(uuid.MustParse(userID), friend.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to send friend request", "details": err.Error()})
 		return
@@ -154,7 +154,7 @@ func SendFriendRequest(c *gin.Context) {
 
 // AcceptFriendRequest handles HTTP PUT requests to accept a friend request
 func AcceptFriendRequest(c *gin.Context) {
-	userID, err := auth.GetUserIDFromContext(c)
+	userID, err := auth.ExtractUserID(c)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user context"})
 		return
@@ -167,7 +167,7 @@ func AcceptFriendRequest(c *gin.Context) {
 		return
 	}
 
-	if err := db.AcceptFriendRequest(friendID, userID); err != nil {
+	if err := db.AcceptFriendRequest(friendID, uuid.MustParse(userID)); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to accept friend request", "details": err.Error()})
 		return
 	}
@@ -177,13 +177,13 @@ func AcceptFriendRequest(c *gin.Context) {
 
 // GetFriends handles HTTP GET requests to retrieve user's friends
 func GetFriends(c *gin.Context) {
-	userID, err := auth.GetUserIDFromContext(c)
+	userID, err := auth.ExtractUserID(c)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user context"})
 		return
 	}
 
-	friends, err := db.GetFriendsByUser(userID)
+	friends, err := db.GetFriendsByUser(uuid.MustParse(userID))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve friends", "details": err.Error()})
 		return
@@ -200,13 +200,13 @@ func MarkAsRead(c *gin.Context) {
 		return
 	}
 
-	userID, err := auth.GetUserIDFromContext(c)
+	userID, err := auth.ExtractUserID(c)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user context"})
 		return
 	}
 
-	if err := db.MarkMessagesAsRead(req.MessageIDs, userID); err != nil {
+	if err := db.MarkMessagesAsRead(req.MessageIDs, uuid.MustParse(userID)); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to mark messages as read", "details": err.Error()})
 		return
 	}
@@ -223,13 +223,13 @@ func MarkAsRead(c *gin.Context) {
 // @Router /api/feed [get]
 // @Security BearerAuth
 func GetFeed(c *gin.Context) {
-	userID, err := auth.GetUserIDFromContext(c)
+	userID, err := auth.ExtractUserID(c)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user context"})
 		return
 	}
 
-	feedItems, err := db.GetFriendsActivityFeed(userID)
+	feedItems, err := db.GetFriendsActivityFeed(uuid.MustParse(userID))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch feed", "details": err.Error()})
 		return
