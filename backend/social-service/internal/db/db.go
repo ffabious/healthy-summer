@@ -97,20 +97,6 @@ func Connect() {
 		log.Printf("Failed to create uuid-ossp extension (might already exist): %v", err)
 	}
 
-	// Create schemas if they don't exist
-	schemaQueries := []string{
-		"CREATE SCHEMA IF NOT EXISTS social",
-		"CREATE SCHEMA IF NOT EXISTS nutrition", 
-		"CREATE SCHEMA IF NOT EXISTS \"user\"", // user is a reserved keyword, needs quotes
-	}
-	
-	for _, query := range schemaQueries {
-		_, err = sqlDB.Exec(query)
-		if err != nil {
-			log.Printf("Failed to create schema: %v", err)
-		}
-	}
-
 	// Set search_path for the social schema
 	_, err = sqlDB.Exec(fmt.Sprintf("SET search_path TO %s", os.Getenv("DB_SCHEMA")))
 	if err != nil {
