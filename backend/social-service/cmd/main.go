@@ -5,6 +5,8 @@ import (
 	"os"
 
 	"github.com/ffabious/healthy-summer/social-service/internal/db"
+	"github.com/ffabious/healthy-summer/social-service/internal/auth"
+	"github.com/ffabious/healthy-summer/social-service/internal/handler"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -36,11 +38,11 @@ func startHTTPServer() {
 	r.GET("/api/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Protected routes
-	// api := r.Group("/api", auth.JWTMiddleware())
-	// {
-	// 	// Feed routes
-	// 	api.GET("/feed", handler.GetFeed)
-	// }
+	api := r.Group("/api", auth.JWTMiddleware())
+	{
+		// Feed routes
+		api.GET("/feed", handler.GetFeed)
+	}
 
 	port := os.Getenv("PORT")
 	if port == "" {

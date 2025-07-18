@@ -7,13 +7,13 @@ import (
 	"time"
 
 	"github.com/ffabious/healthy-summer/social-service/internal/model"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 var DB *gorm.DB
-var NutritionDB *gorm.DB
 var UserDB *gorm.DB
 
 func Connect() {
@@ -55,9 +55,45 @@ func Connect() {
 
 	log.Println("Database connected successfully")
 
-	// Auto-migrate models
-	if err := DB.AutoMigrate(&model.Message{}, &model.Conversation{}, &model.Friend{}); err != nil {
-		log.Fatalf("Failed to migrate database: %v", err)
+}
+
+func GetFriends(userID string) ([]model.Friend, error) {
+	var friends []model.Friend
+	err := DB.Table("friends").
+		Where("user_id = ?", userID).
+		Find(&friends).Error
+	return friends, err
+}
+
+func GetFeedByFriends(userID string, friends []model.Friend) (model.Feed, error) {
+	var feed model.Feed
+	var friendIDs []string
+	for _, friend := range friends {
+		friendIDs = append(friendIDs, friend.FriendID.String())
 	}
-	log.Println("Database migration completed")
+
+	type WaterResult struct {
+		UserID string
+		Total  float64
+	}
+
+	var results []WaterResult
+	err := DB.Table("waters").
+		Select("user_id, SUM(amount) as total").
+		Where("user_id IN ?", friendIDs).
+		Group("user_id").
+		Having("SUM(amount) >= ?", 2000).
+		Scan(&results).Error
+	if err != nil {
+		return feed, err
+	}
+
+	for _, result := range results {
+		feed.Items = append(feed.Items, model.FeedItem{
+			ActivityID: uuid.New(),
+			FriendID:   uuid.MustParse(result.UserID),
+		})
+	}
+
+	return feed, nil
 }
