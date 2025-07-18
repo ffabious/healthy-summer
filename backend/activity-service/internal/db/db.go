@@ -71,6 +71,12 @@ func Connect() {
 }
 
 func CreateActivity(activity *model.Activity) error {
+	if DB == nil {
+		return fmt.Errorf("database connection is nil")
+	}
+	if activity == nil {
+		return fmt.Errorf("activity cannot be nil")
+	}
 	if err := DB.Create(activity).Error; err != nil {
 		return fmt.Errorf("failed to create activity: %w", err)
 	}
@@ -78,6 +84,12 @@ func CreateActivity(activity *model.Activity) error {
 }
 
 func GetActivitiesByUserID(userID string) (*[]model.Activity, error) {
+	if DB == nil {
+		return nil, fmt.Errorf("database connection is nil")
+	}
+	if userID == "" {
+		return nil, fmt.Errorf("userID cannot be empty")
+	}
 	var activities []model.Activity
 	if err := DB.Where("user_id = ?", userID).Find(&activities).Error; err != nil {
 		return nil, fmt.Errorf("failed to get activities for user %s: %w", userID, err)
@@ -86,6 +98,12 @@ func GetActivitiesByUserID(userID string) (*[]model.Activity, error) {
 }
 
 func GetActivityStatsByUserID(userID string) (*model.ActivityStats, error) {
+	if DB == nil {
+		return nil, fmt.Errorf("database connection is nil")
+	}
+	if userID == "" {
+		return nil, fmt.Errorf("userID cannot be empty")
+	}
 	var stats model.ActivityStats
 	var period model.ActivityPeriod
 
@@ -181,6 +199,12 @@ func GetActivityStatsByUserID(userID string) (*model.ActivityStats, error) {
 }
 
 func CreateStepEntry(stepEntry *model.StepEntry) error {
+	if DB == nil {
+		return fmt.Errorf("database connection is nil")
+	}
+	if stepEntry == nil {
+		return fmt.Errorf("stepEntry cannot be nil")
+	}
 	if err := DB.Create(stepEntry).Error; err != nil {
 		return fmt.Errorf("failed to create step entry: %w", err)
 	}
@@ -188,6 +212,15 @@ func CreateStepEntry(stepEntry *model.StepEntry) error {
 }
 
 func GetStepEntriesByUserID(userID string, days int) ([]model.StepEntry, error) {
+	if DB == nil {
+		return nil, fmt.Errorf("database connection is nil")
+	}
+	if userID == "" {
+		return nil, fmt.Errorf("userID cannot be empty")
+	}
+	if days < 0 {
+		return nil, fmt.Errorf("days cannot be negative")
+	}
 	var stepEntries []model.StepEntry
 	query := fmt.Sprintf("user_id = ? AND date >= CURRENT_DATE - INTERVAL '%d days'", days-1)
 	if err := DB.Where(query, userID).
@@ -199,6 +232,12 @@ func GetStepEntriesByUserID(userID string, days int) ([]model.StepEntry, error) 
 }
 
 func GetActivityAnalyticsByUserID(userID string) (*model.GetActivityAnalyticsResponse, error) {
+	if DB == nil {
+		return nil, fmt.Errorf("database connection is nil")
+	}
+	if userID == "" {
+		return nil, fmt.Errorf("userID cannot be empty")
+	}
 	var analytics model.GetActivityAnalyticsResponse
 
 	// Query activities by type and add to ActivityBreakdown list
@@ -241,6 +280,12 @@ func GetActivityAnalyticsByUserID(userID string) (*model.GetActivityAnalyticsRes
 }
 
 func GetActivityByID(activityID string) (*model.Activity, error) {
+	if DB == nil {
+		return nil, fmt.Errorf("database connection is nil")
+	}
+	if activityID == "" {
+		return nil, fmt.Errorf("activityID cannot be empty")
+	}
 	var activity model.Activity
 	if err := DB.Where("id = ?", activityID).First(&activity).Error; err != nil {
 		return nil, fmt.Errorf("failed to get activity %s: %w", activityID, err)
@@ -249,6 +294,12 @@ func GetActivityByID(activityID string) (*model.Activity, error) {
 }
 
 func UpdateActivity(activity *model.Activity) error {
+	if DB == nil {
+		return fmt.Errorf("database connection is nil")
+	}
+	if activity == nil {
+		return fmt.Errorf("activity cannot be nil")
+	}
 	if err := DB.Save(activity).Error; err != nil {
 		return fmt.Errorf("failed to update activity: %w", err)
 	}
@@ -256,6 +307,12 @@ func UpdateActivity(activity *model.Activity) error {
 }
 
 func DeleteActivity(activityID string) error {
+	if DB == nil {
+		return fmt.Errorf("database connection is nil")
+	}
+	if activityID == "" {
+		return fmt.Errorf("activityID cannot be empty")
+	}
 	if err := DB.Where("id = ?", activityID).Delete(&model.Activity{}).Error; err != nil {
 		return fmt.Errorf("failed to delete activity %s: %w", activityID, err)
 	}
