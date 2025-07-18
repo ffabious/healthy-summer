@@ -53,6 +53,34 @@ jobs:
           go mod download
           go test ./... -v
 
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.32.4"
+          channel: "stable"
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.pub-cache
+            ~/.dart_tool
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
+
+      - name: Install Flutter dependencies
+        working-directory: ./frontend/flutter_app
+        run: flutter pub get
+
+      - name: Analyze Flutter code
+        working-directory: ./frontend/flutter_app
+        run: flutter analyze
+
+      - name: Test Flutter app
+        working-directory: ./frontend/flutter_app
+        run: flutter test
+
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
