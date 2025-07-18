@@ -61,6 +61,12 @@ func Connect() {
 }
 
 func CreateMeal(meal *model.Meal) error {
+	if DB == nil {
+		return fmt.Errorf("database connection is nil")
+	}
+	if meal == nil {
+		return fmt.Errorf("meal cannot be nil")
+	}
 	if err := DB.Create(meal).Error; err != nil {
 		return fmt.Errorf("failed to create meal: %w", err)
 	}
@@ -68,6 +74,9 @@ func CreateMeal(meal *model.Meal) error {
 }
 
 func GetMealsByUserID(userID string) ([]model.Meal, error) {
+	if DB == nil {
+		return nil, fmt.Errorf("database connection is nil")
+	}
 	var meals []model.Meal
 	if err := DB.Where("user_id = ?", userID).Find(&meals).Error; err != nil {
 		return nil, fmt.Errorf("failed to get meals for user %s: %w", userID, err)
@@ -76,6 +85,12 @@ func GetMealsByUserID(userID string) ([]model.Meal, error) {
 }
 
 func CreateWater(water *model.Water) error {
+	if DB == nil {
+		return fmt.Errorf("database connection is nil")
+	}
+	if water == nil {
+		return fmt.Errorf("water entry cannot be nil")
+	}
 	if err := DB.Create(water).Error; err != nil {
 		return fmt.Errorf("failed to create water entry: %w", err)
 	}
@@ -83,6 +98,9 @@ func CreateWater(water *model.Water) error {
 }
 
 func GetWaterIntakeByUserID(userID string) ([]model.Water, error) {
+	if DB == nil {
+		return nil, fmt.Errorf("database connection is nil")
+	}
 	var waterEntries []model.Water
 	if err := DB.Where("user_id = ?", userID).Order("timestamp DESC").Find(&waterEntries).Error; err != nil {
 		return nil, fmt.Errorf("failed to get water intake for user %s: %w", userID, err)
@@ -91,6 +109,9 @@ func GetWaterIntakeByUserID(userID string) ([]model.Water, error) {
 }
 
 func GetNutritionStatsByUserID(userID string) (*model.NutritionStats, error) {
+	if DB == nil {
+		return nil, fmt.Errorf("database connection is nil")
+	}
 	now := time.Now()
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	weekStart := today.AddDate(0, 0, -int(today.Weekday()))
@@ -130,6 +151,9 @@ func GetNutritionStatsByUserID(userID string) (*model.NutritionStats, error) {
 }
 
 func calculatePeriodStats(userID string, startTime, endTime time.Time) (*model.NutritionPeriod, error) {
+	if DB == nil {
+		return nil, fmt.Errorf("database connection is nil")
+	}
 	var meals []model.Meal
 	var waterEntries []model.Water
 
@@ -175,6 +199,9 @@ func calculatePeriodStats(userID string, startTime, endTime time.Time) (*model.N
 }
 
 func SearchFood(query string) ([]model.FoodItem, error) {
+	if DB == nil {
+		return nil, fmt.Errorf("database connection is nil")
+	}
 	var foods []model.FoodItem
 	if err := DB.Where("name ILIKE ?", "%"+query+"%").Find(&foods).Error; err != nil {
 		return nil, fmt.Errorf("failed to search food items: %w", err)
@@ -183,6 +210,12 @@ func SearchFood(query string) ([]model.FoodItem, error) {
 }
 
 func UpdateMeal(mealID, userID string, req *model.PostMealRequest) (*model.Meal, error) {
+	if DB == nil {
+		return nil, fmt.Errorf("database connection is nil")
+	}
+	if req == nil {
+		return nil, fmt.Errorf("request cannot be nil")
+	}
 	var meal model.Meal
 
 	// First, check if the meal exists and belongs to the user
@@ -205,6 +238,9 @@ func UpdateMeal(mealID, userID string, req *model.PostMealRequest) (*model.Meal,
 }
 
 func DeleteMeal(mealID, userID string) error {
+	if DB == nil {
+		return fmt.Errorf("database connection is nil")
+	}
 	result := DB.Where("id = ? AND user_id = ?", mealID, userID).Delete(&model.Meal{})
 	if result.Error != nil {
 		return fmt.Errorf("failed to delete meal: %w", result.Error)
@@ -216,6 +252,12 @@ func DeleteMeal(mealID, userID string) error {
 }
 
 func UpdateWaterEntry(waterID, userID string, req *model.PostWaterRequest) (*model.Water, error) {
+	if DB == nil {
+		return nil, fmt.Errorf("database connection is nil")
+	}
+	if req == nil {
+		return nil, fmt.Errorf("request cannot be nil")
+	}
 	var water model.Water
 
 	// First, check if the water entry exists and belongs to the user
@@ -234,6 +276,9 @@ func UpdateWaterEntry(waterID, userID string, req *model.PostWaterRequest) (*mod
 }
 
 func DeleteWaterEntry(waterID, userID string) error {
+	if DB == nil {
+		return fmt.Errorf("database connection is nil")
+	}
 	result := DB.Where("id = ? AND user_id = ?", waterID, userID).Delete(&model.Water{})
 	if result.Error != nil {
 		return fmt.Errorf("failed to delete water entry: %w", result.Error)
