@@ -62,6 +62,9 @@ func Connect() {
 }
 
 func PostLogin(request model.LoginRequest) (*model.User, error) {
+	if DB == nil {
+		return nil, fmt.Errorf("database connection is nil")
+	}
 	var user model.User
 	if err := DB.Where("email = ? AND password = ?", request.Email, request.Password).First(&user).Error; err != nil {
 		return nil, err
@@ -70,6 +73,9 @@ func PostLogin(request model.LoginRequest) (*model.User, error) {
 }
 
 func PostRegister(request model.RegisterRequest) (*model.User, error) {
+	if DB == nil {
+		return nil, fmt.Errorf("database connection is nil")
+	}
 	user := model.User{
 		ID:        uuid.New(),
 		Email:     request.Email,
@@ -87,6 +93,9 @@ func PostRegister(request model.RegisterRequest) (*model.User, error) {
 }
 
 func GetUserByID(userID uuid.UUID) (*model.User, error) {
+	if DB == nil {
+		return nil, fmt.Errorf("database connection is nil")
+	}
 	var user model.User
 	if err := DB.First(&user, "id = ?", userID).Error; err != nil {
 		return nil, err
@@ -95,6 +104,9 @@ func GetUserByID(userID uuid.UUID) (*model.User, error) {
 }
 
 func GetUserByEmail(email string) (*model.User, error) {
+	if DB == nil {
+		return nil, fmt.Errorf("database connection is nil")
+	}
 	var user model.User
 	if err := DB.First(&user, "email = ?", email).Error; err != nil {
 		return nil, err
@@ -282,6 +294,9 @@ func RejectFriendRequest(requestID uuid.UUID, userID uuid.UUID) (*model.FriendRe
 
 // SearchUsers searches for users by email or name
 func SearchUsers(query string, excludeUserID uuid.UUID) ([]model.User, error) {
+	if DB == nil {
+		return nil, fmt.Errorf("database connection is nil")
+	}
 	var users []model.User
 	searchPattern := "%" + query + "%"
 	if err := DB.Where(
