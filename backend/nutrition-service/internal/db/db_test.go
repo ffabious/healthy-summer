@@ -17,17 +17,17 @@ func TestConnect(t *testing.T) {
 			t.Errorf("Connect() panicked: %v", r)
 		}
 	}()
-	
+
 	// Set environment variables for testing
 	os.Setenv("DB_HOST", "localhost")
 	os.Setenv("DB_PORT", "5432")
 	os.Setenv("DB_USER", "test")
 	os.Setenv("DB_PASSWORD", "test")
 	os.Setenv("DB_NAME", "test")
-	
+
 	// Note: This will likely fail to connect but shouldn't panic
 	// Connect() // Commented out as it would try to connect to actual DB
-	
+
 	// Test passes if we reach this point without panicking
 	if true {
 		t.Log("Connect function test passed")
@@ -38,10 +38,10 @@ func TestCreateMealWithNilDatabase(t *testing.T) {
 	// Save original DB
 	originalDB := DB
 	defer func() { DB = originalDB }()
-	
+
 	// Set DB to nil
 	DB = nil
-	
+
 	meal := &model.Meal{
 		ID:            uuid.New(),
 		UserID:        uuid.New(),
@@ -52,12 +52,12 @@ func TestCreateMealWithNilDatabase(t *testing.T) {
 		Fats:          10.0,
 		Timestamp:     time.Now(),
 	}
-	
+
 	err := CreateMeal(meal)
 	if err == nil {
 		t.Error("Expected error when DB is nil, got nil")
 	}
-	
+
 	if err.Error() == "" {
 		t.Error("Expected non-empty error message")
 	}
@@ -67,10 +67,10 @@ func TestCreateMealWithNilMeal(t *testing.T) {
 	// Save original DB
 	originalDB := DB
 	defer func() { DB = originalDB }()
-	
+
 	// Set DB to nil to force error
 	DB = nil
-	
+
 	err := CreateMeal(nil)
 	if err == nil {
 		t.Error("Expected error when meal is nil, got nil")
@@ -81,10 +81,10 @@ func TestGetMealsByUserIDWithNilDatabase(t *testing.T) {
 	// Save original DB
 	originalDB := DB
 	defer func() { DB = originalDB }()
-	
+
 	// Set DB to nil
 	DB = nil
-	
+
 	_, err := GetMealsByUserID("test-user-id")
 	if err == nil {
 		t.Error("Expected error when DB is nil, got nil")
@@ -95,10 +95,10 @@ func TestGetMealsByUserIDWithInvalidUserID(t *testing.T) {
 	// Save original DB
 	originalDB := DB
 	defer func() { DB = originalDB }()
-	
+
 	// Set DB to nil to force error
 	DB = nil
-	
+
 	// Test with invalid UUID format
 	_, err := GetMealsByUserID("invalid-uuid")
 	if err == nil {
@@ -106,7 +106,7 @@ func TestGetMealsByUserIDWithInvalidUserID(t *testing.T) {
 	} else {
 		t.Logf("Got error with invalid UUID (expected): %v", err)
 	}
-	
+
 	// Test with empty user ID
 	_, err = GetMealsByUserID("")
 	if err == nil {
@@ -120,17 +120,17 @@ func TestCreateWaterWithNilDatabase(t *testing.T) {
 	// Save original DB
 	originalDB := DB
 	defer func() { DB = originalDB }()
-	
+
 	// Set DB to nil
 	DB = nil
-	
+
 	water := &model.Water{
 		ID:        uuid.New(),
 		UserID:    uuid.New(),
 		VolumeMl:  250.0,
 		Timestamp: time.Now(),
 	}
-	
+
 	err := CreateWater(water)
 	if err == nil {
 		t.Error("Expected error when DB is nil, got nil")
@@ -141,10 +141,10 @@ func TestCreateWaterWithNilWater(t *testing.T) {
 	// Save original DB
 	originalDB := DB
 	defer func() { DB = originalDB }()
-	
+
 	// Set DB to nil to force error
 	DB = nil
-	
+
 	err := CreateWater(nil)
 	if err == nil {
 		t.Error("Expected error when water is nil, got nil")
@@ -155,10 +155,10 @@ func TestGetWaterIntakeByUserIDWithNilDatabase(t *testing.T) {
 	// Save original DB
 	originalDB := DB
 	defer func() { DB = originalDB }()
-	
+
 	// Set DB to nil
 	DB = nil
-	
+
 	_, err := GetWaterIntakeByUserID("test-user-id")
 	if err == nil {
 		t.Error("Expected error when DB is nil, got nil")
@@ -169,10 +169,10 @@ func TestGetWaterIntakeByUserIDWithInvalidUserID(t *testing.T) {
 	// Save original DB
 	originalDB := DB
 	defer func() { DB = originalDB }()
-	
+
 	// Set DB to nil to force error
 	DB = nil
-	
+
 	// Test with invalid UUID format
 	_, err := GetWaterIntakeByUserID("invalid-uuid")
 	if err == nil {
@@ -180,7 +180,7 @@ func TestGetWaterIntakeByUserIDWithInvalidUserID(t *testing.T) {
 	} else {
 		t.Logf("Got error with invalid UUID (expected): %v", err)
 	}
-	
+
 	// Test with empty user ID
 	_, err = GetWaterIntakeByUserID("")
 	if err == nil {
@@ -194,10 +194,10 @@ func TestGetNutritionStatsByUserIDWithNilDatabase(t *testing.T) {
 	// Save original DB
 	originalDB := DB
 	defer func() { DB = originalDB }()
-	
+
 	// Set DB to nil
 	DB = nil
-	
+
 	_, err := GetNutritionStatsByUserID("test-user-id")
 	if err == nil {
 		t.Error("Expected error when DB is nil, got nil")
@@ -208,10 +208,10 @@ func TestGetNutritionStatsByUserIDWithInvalidUserID(t *testing.T) {
 	// Save original DB
 	originalDB := DB
 	defer func() { DB = originalDB }()
-	
+
 	// Set DB to nil to force error
 	DB = nil
-	
+
 	// Test with invalid UUID format
 	_, err := GetNutritionStatsByUserID("invalid-uuid")
 	if err == nil {
@@ -219,7 +219,7 @@ func TestGetNutritionStatsByUserIDWithInvalidUserID(t *testing.T) {
 	} else {
 		t.Logf("Got error with invalid UUID (expected): %v", err)
 	}
-	
+
 	// Test with empty user ID
 	_, err = GetNutritionStatsByUserID("")
 	if err == nil {
@@ -233,10 +233,10 @@ func TestSearchFoodWithNilDatabase(t *testing.T) {
 	// Save original DB
 	originalDB := DB
 	defer func() { DB = originalDB }()
-	
+
 	// Set DB to nil
 	DB = nil
-	
+
 	_, err := SearchFood("chicken")
 	if err == nil {
 		t.Error("Expected error when DB is nil, got nil")
@@ -247,10 +247,10 @@ func TestSearchFoodWithValidQuery(t *testing.T) {
 	// Save original DB
 	originalDB := DB
 	defer func() { DB = originalDB }()
-	
+
 	// Set DB to nil to force error
 	DB = nil
-	
+
 	// Test with valid query
 	_, err := SearchFood("chicken")
 	if err == nil {
@@ -258,7 +258,7 @@ func TestSearchFoodWithValidQuery(t *testing.T) {
 	} else {
 		t.Logf("Got error with valid query (expected): %v", err)
 	}
-	
+
 	// Test with empty query
 	_, err = SearchFood("")
 	if err == nil {
@@ -272,10 +272,10 @@ func TestUpdateMealWithNilDatabase(t *testing.T) {
 	// Save original DB
 	originalDB := DB
 	defer func() { DB = originalDB }()
-	
+
 	// Set DB to nil
 	DB = nil
-	
+
 	req := &model.PostMealRequest{
 		Name:          "Updated Meal",
 		Calories:      300,
@@ -283,7 +283,7 @@ func TestUpdateMealWithNilDatabase(t *testing.T) {
 		Carbohydrates: 35.0,
 		Fats:          15.0,
 	}
-	
+
 	_, err := UpdateMeal("test-meal-id", "test-user-id", req)
 	if err == nil {
 		t.Error("Expected error when DB is nil, got nil")
@@ -294,10 +294,10 @@ func TestUpdateMealWithNilRequest(t *testing.T) {
 	// Save original DB
 	originalDB := DB
 	defer func() { DB = originalDB }()
-	
+
 	// Set DB to nil to force error
 	DB = nil
-	
+
 	_, err := UpdateMeal("test-meal-id", "test-user-id", nil)
 	if err == nil {
 		t.Error("Expected error when request is nil, got nil")
@@ -308,10 +308,10 @@ func TestUpdateMealWithInvalidIDs(t *testing.T) {
 	// Save original DB
 	originalDB := DB
 	defer func() { DB = originalDB }()
-	
+
 	// Set DB to nil to force error
 	DB = nil
-	
+
 	req := &model.PostMealRequest{
 		Name:          "Updated Meal",
 		Calories:      300,
@@ -319,19 +319,19 @@ func TestUpdateMealWithInvalidIDs(t *testing.T) {
 		Carbohydrates: 35.0,
 		Fats:          15.0,
 	}
-	
+
 	// Test with invalid meal ID
 	_, err := UpdateMeal("invalid-uuid", "test-user-id", req)
 	if err == nil {
 		t.Error("Expected error when DB is nil, got nil")
 	}
-	
+
 	// Test with empty meal ID
 	_, err = UpdateMeal("", "test-user-id", req)
 	if err == nil {
 		t.Error("Expected error when DB is nil, got nil")
 	}
-	
+
 	// Test with empty user ID
 	_, err = UpdateMeal("test-meal-id", "", req)
 	if err == nil {
@@ -343,10 +343,10 @@ func TestDeleteMealWithNilDatabase(t *testing.T) {
 	// Save original DB
 	originalDB := DB
 	defer func() { DB = originalDB }()
-	
+
 	// Set DB to nil
 	DB = nil
-	
+
 	err := DeleteMeal("test-meal-id", "test-user-id")
 	if err == nil {
 		t.Error("Expected error when DB is nil, got nil")
@@ -357,10 +357,10 @@ func TestDeleteMealWithInvalidIDs(t *testing.T) {
 	// Save original DB
 	originalDB := DB
 	defer func() { DB = originalDB }()
-	
+
 	// Set DB to nil to force error
 	DB = nil
-	
+
 	// Test with invalid meal ID
 	err := DeleteMeal("invalid-uuid", "test-user-id")
 	if err == nil {
@@ -368,7 +368,7 @@ func TestDeleteMealWithInvalidIDs(t *testing.T) {
 	} else {
 		t.Logf("Got error with invalid meal ID (expected): %v", err)
 	}
-	
+
 	// Test with empty meal ID
 	err = DeleteMeal("", "test-user-id")
 	if err == nil {
@@ -376,7 +376,7 @@ func TestDeleteMealWithInvalidIDs(t *testing.T) {
 	} else {
 		t.Logf("Got error with empty meal ID (expected): %v", err)
 	}
-	
+
 	// Test with empty user ID
 	err = DeleteMeal("test-meal-id", "")
 	if err == nil {
@@ -390,14 +390,14 @@ func TestUpdateWaterEntryWithNilDatabase(t *testing.T) {
 	// Save original DB
 	originalDB := DB
 	defer func() { DB = originalDB }()
-	
+
 	// Set DB to nil
 	DB = nil
-	
+
 	req := &model.PostWaterRequest{
 		VolumeMl: 500.0,
 	}
-	
+
 	_, err := UpdateWaterEntry("test-water-id", "test-user-id", req)
 	if err == nil {
 		t.Error("Expected error when DB is nil, got nil")
@@ -408,10 +408,10 @@ func TestUpdateWaterEntryWithNilRequest(t *testing.T) {
 	// Save original DB
 	originalDB := DB
 	defer func() { DB = originalDB }()
-	
+
 	// Set DB to nil to force error
 	DB = nil
-	
+
 	_, err := UpdateWaterEntry("test-water-id", "test-user-id", nil)
 	if err == nil {
 		t.Error("Expected error when request is nil, got nil")
@@ -422,10 +422,10 @@ func TestDeleteWaterEntryWithNilDatabase(t *testing.T) {
 	// Save original DB
 	originalDB := DB
 	defer func() { DB = originalDB }()
-	
+
 	// Set DB to nil
 	DB = nil
-	
+
 	err := DeleteWaterEntry("test-water-id", "test-user-id")
 	if err == nil {
 		t.Error("Expected error when DB is nil, got nil")
@@ -436,10 +436,10 @@ func TestDeleteWaterEntryWithInvalidIDs(t *testing.T) {
 	// Save original DB
 	originalDB := DB
 	defer func() { DB = originalDB }()
-	
+
 	// Set DB to nil to force error
 	DB = nil
-	
+
 	// Test with invalid water ID
 	err := DeleteWaterEntry("invalid-uuid", "test-user-id")
 	if err == nil {
@@ -447,7 +447,7 @@ func TestDeleteWaterEntryWithInvalidIDs(t *testing.T) {
 	} else {
 		t.Logf("Got error with invalid water ID (expected): %v", err)
 	}
-	
+
 	// Test with empty water ID
 	err = DeleteWaterEntry("", "test-user-id")
 	if err == nil {
@@ -455,7 +455,7 @@ func TestDeleteWaterEntryWithInvalidIDs(t *testing.T) {
 	} else {
 		t.Logf("Got error with empty water ID (expected): %v", err)
 	}
-	
+
 	// Test with empty user ID
 	err = DeleteWaterEntry("test-water-id", "")
 	if err == nil {
