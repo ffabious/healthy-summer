@@ -365,32 +365,3 @@ func SearchUsersHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response)
 }
-
-// @Summary Get Friends' Activities
-// @Description Get friends' specific activity data (currently supports water activity: 2L+ consumption today)
-// @Tags friends
-// @Produce json
-// @Param type query string true "Activity type to filter by" Enums(water)
-// @Success 200 {array} model.FriendActivity
-// @Security BearerAuth
-// @Router /api/users/friends/activities [get]
-func GetFriendsActivitiesHandler(c *gin.Context) {
-	userID, err := auth.ExtractUserID(c)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized", "details": err.Error()})
-		return
-	}
-
-	activityType := c.Query("type")
-	if activityType == "" {
-		activityType = "water" // default to water for now
-	}
-
-	activities, err := db.GetFriendsActivities(uuid.MustParse(userID), activityType)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve friends' activities", "details": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, activities)
-}
